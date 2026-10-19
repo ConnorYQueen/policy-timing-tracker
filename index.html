@@ -1,0 +1,1275 @@
+<!doctype html>
+<html lang="en" class="cds-root" data-mode="system">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Policy timing &amp; conflicts tracker</title>
+<meta name="description" content="Money that reached presidents’ families and connected firms, trades placed just before government announcements, and what investigators did, for Trump, Biden and Obama, plus a check of every senator and 55 House members. Every item links to its sources.">
+<meta property="og:title" content="Policy timing &amp; conflicts tracker">
+<meta property="og:description" content="Sourced, dated records with the same rules for every president and member of Congress. Being listed is not proof of wrongdoing.">
+<script>
+  // The reader's theme choice, if they made one on an earlier visit; otherwise the system setting decides.
+  try { const m = localStorage.getItem('tt-theme'); if (m === 'light' || m === 'dark') document.documentElement.setAttribute('data-mode', m); } catch (err) {}
+</script>
+<link rel="stylesheet" href="theme.css">
+<style>
+  #dash-root { padding: clamp(16px, 3vw, 32px) clamp(16px, 4vw, 40px) 0; }
+  .site-bar { max-width: 1240px; margin: 0 auto; padding: 10px clamp(16px, 4vw, 40px) 0; display: flex; justify-content: flex-end; gap: 6px; align-items: center;
+    font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .site-bar button { font: inherit; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); border-radius: var(--cds-radius); min-height: 1.75rem; padding: 0 10px; cursor: pointer; }
+  .site-bar button[aria-pressed="true"] { border-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .site-foot { max-width: 1240px; margin: 0 auto; padding: 8px clamp(16px, 4vw, 40px) 48px; font-size: var(--cds-font-size-body); }
+  .site-foot .site-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); }
+  .site-foot h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 6px; }
+  .site-foot ul { margin: 8px 0 0; padding-left: 1.2em; }
+  .site-foot li { margin-bottom: 8px; }
+  .site-foot a { color: var(--color-fg); }
+  .site-muted { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+  .site-noscript { max-width: 60ch; margin: 2rem auto; padding: 0 16px; }
+  @media (pointer: coarse) { .site-bar button { min-height: 44px; padding: 0 14px; } }
+</style>
+</head>
+<body>
+<div class="site-bar" role="group" aria-label="Color theme">
+  <span>Theme</span>
+  <button type="button" data-theme="system">Auto</button>
+  <button type="button" data-theme="light">Light</button>
+  <button type="button" data-theme="dark">Dark</button>
+</div>
+<noscript><p class="site-noscript">This dashboard draws its charts with JavaScript. Turn JavaScript on to see it, or download the data files listed at the bottom of the page.</p></noscript>
+<div id="dash-root" data-appifact-content>
+<style>
+/* Policy timing & conflicts tracker, v2. Only the page's own classes are styled; every color is a theme token or one of the
+   party colors below, which are set for light and dark. */
+.tt-wrap { max-width: 1240px; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); container-type: inline-size; }
+.tt-wrap [hidden] { display: none !important; }
+
+/* ---------- Party colors ----------
+   Each president has a color for money to the family and connected firms (-c-<page>): two reds for Trump's two terms,
+   two blues for Biden and Obama. Trades just before government news, mostly by others, take one neutral gray on every
+   page (-c-trades), and background kinds a light gray. Senate and House members take their party's color. Steps come from the design system's color ramps, picked per theme and checked for
+   separation under red-green color blindness; every chart also labels what each color means. */
+.tt-wrap {
+  --tt-dur: calc(var(--cds-dur-slow) * 2.6);
+  --tt-dur-mark: calc(var(--cds-dur-slow) * 1.3);
+  --tt-c-trump: #d03b3b; --tt-c-trump1: #791e1e; --tt-c-biden: #3987e5; --tt-c-obama: #104281;
+  --tt-c-trades: #7b7974;
+  --tt-c-R: #d03b3b; --tt-c-D: #3987e5; --tt-c-I: #52514e;
+  --tt-c-muted: var(--cds-chart-muted);
+  --tt-accent: var(--color-fg-muted);
+}
+@media screen {
+  :where([data-mode=dark] .cds-root:not([data-mode=light]):not([data-mode=system]), .cds-root[data-mode=dark], .cds-dark-scope[data-mode=dark]) .tt-wrap {
+    --tt-c-trump: #ec7e7e; --tt-c-trump1: #b93535; --tt-c-biden: #6da7ec; --tt-c-obama: #256abf;
+    --tt-c-trades: #c3c2b7;
+    --tt-c-R: #ec7e7e; --tt-c-D: #6da7ec; --tt-c-I: #6d6b67;
+    --tt-c-muted: #6d6b67;
+  }
+}
+@media screen and (prefers-color-scheme: dark) {
+  :where([data-mode=system] .cds-root:not([data-mode=light]):not([data-mode=dark]), .cds-root[data-mode=system], .cds-root:not([data-mode]):not([data-mode] *)) .tt-wrap {
+    --tt-c-trump: #ec7e7e; --tt-c-trump1: #b93535; --tt-c-biden: #6da7ec; --tt-c-obama: #256abf;
+    --tt-c-trades: #c3c2b7;
+    --tt-c-R: #ec7e7e; --tt-c-D: #6da7ec; --tt-c-I: #6d6b67;
+    --tt-c-muted: #6d6b67;
+  }
+}
+/* Each president's page wears its color: the band over the page header, section rules, the summary button. */
+#trump { --tt-accent: var(--tt-c-trump); }
+#trump1 { --tt-accent: var(--tt-c-trump1); }
+#biden { --tt-accent: var(--tt-c-biden); }
+#obama { --tt-accent: var(--tt-c-obama); }
+.tt-page[data-pres] .tt-term-band { fill: var(--tt-accent); opacity: .08; }
+.tt-page[data-pres] .tt-page-head { border-top: 4px solid var(--tt-accent); background: color-mix(in srgb, var(--tt-accent) 7%, var(--color-panel)); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); }
+.tt-page[data-pres] .tt-section-title, .tt-page[data-pres] .tt-sum-title { border-left: 4px solid var(--tt-accent); padding-left: var(--cds-pad-sm); }
+.tt-pres-name { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; margin: 0 0 var(--cds-gap-xs); }
+.tt-party-word { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+/* Party chips: a dot in the party's color beside the letter or name, in text color. */
+.tt-party { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+.tt-party-dot { display: inline-block; flex: none; width: .625rem; height: .625rem; border-radius: 50%; background: var(--tt-c-muted); }
+.tt-party-R .tt-party-dot { background: var(--tt-c-R); }
+.tt-party-D .tt-party-dot { background: var(--tt-c-D); }
+.tt-party-I .tt-party-dot { background: var(--tt-c-I); }
+.tt-party-T .tt-party-dot { background: var(--tt-c-trades); }
+.tt-party-M .tt-party-dot { background: var(--tt-c-muted); }
+.tt-row[data-party] .tt-td:first-child { box-shadow: inset 3px 0 0 var(--tt-row-party, transparent); }
+.tt-row[data-party="R"] { --tt-row-party: var(--tt-c-R); }
+.tt-row[data-party="D"] { --tt-row-party: var(--tt-c-D); }
+.tt-row[data-party="I"] { --tt-row-party: var(--tt-c-I); }
+
+/* ---------- Header and tabs ---------- */
+.tt-head { margin-bottom: var(--cds-gap-md); }
+.tt-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; margin: 0 0 var(--cds-gap-xs); }
+.tt-sub { font-size: var(--cds-font-size-body); color: var(--color-fg); margin: 0; max-width: 78ch; }
+.tt-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
+.tt-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 2px solid transparent; color: var(--color-fg-muted); padding: var(--cds-pad-sm); min-height: 2.25rem; cursor: pointer; }
+.tt-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+/* A president's tab carries that president's color: a dot always, the underline when open. */
+.tt-tab { display: inline-flex; align-items: center; gap: 6px; transition: color var(--cds-dur-base), border-color var(--cds-dur-base); }
+.tt-tab-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--tt-tab-c, transparent); }
+.tt-tab[data-page="trump"] { --tt-tab-c: var(--tt-c-trump); }
+.tt-tab[data-page="biden"] { --tt-tab-c: var(--tt-c-biden); }
+.tt-tab[data-page="obama"] { --tt-tab-c: var(--tt-c-obama); }
+.tt-tab[data-page="trump"][aria-selected="true"], .tt-tab[data-page="biden"][aria-selected="true"], .tt-tab[data-page="obama"][aria-selected="true"] { border-bottom-color: var(--tt-tab-c); border-bottom-width: 3px; }
+.tt-tab:hover { color: var(--color-fg); }
+.tt-tab:focus-visible, .tt-chip:focus-visible, .tt-btn:focus-visible, .tt-th-btn:focus-visible, .tt-linkbtn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+
+/* ---------- Page header: takeaway and callouts ---------- */
+.tt-page-head { margin-bottom: var(--cds-gap-md); }
+.tt-span-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-xs); }
+.tt-takeaway { font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-md); max-width: 84ch; min-height: 1.4em; }
+.tt-callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); }
+.tt-callout { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+.tt-callout-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); font-weight: var(--cds-font-weight-medium); }
+.tt-big { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.05; min-height: 1.05em; }
+.tt-callout-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg); line-height: 1.5; min-height: 1.3em; }
+.tt-muted { color: var(--color-fg-muted); }
+.tt-strong { font-weight: var(--cds-font-weight-medium); }
+
+/* ---------- Per-kind totals tiles ---------- */
+.tt-section-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-lg) 0 var(--cds-gap-xs); }
+.tt-section-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-sm); max-width: 84ch; }
+.tt-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--cds-gap-md); margin-bottom: var(--cds-gap-md); }
+.tt-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-top: 3px solid var(--cds-chart-muted); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+.tt-kpi-label { display: flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg); }
+.tt-kpi-val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.05; min-height: 1.05em; }
+.tt-kpi-none { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
+.tt-kpi-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg); min-height: 1.3em; }
+.tt-kpi-top { font-size: var(--cds-font-size-caption); color: var(--color-fg); border-top: 1px solid var(--color-border-line); padding-top: var(--cds-pad-xs); margin-top: auto; display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-height: 1.3em; }
+.tt-kpi-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tt-linkbtn { font: inherit; font-size: var(--cds-font-size-caption); background: none; border: 0; padding: 0; color: var(--color-fg); text-align: left; cursor: pointer; text-decoration: underline; text-decoration-color: var(--color-border-line); text-underline-offset: 2px; }
+.tt-linkbtn:hover { text-decoration-color: var(--color-fg); }
+
+/* ---------- Swatches, badges, legends ---------- */
+.tt-sw { display: inline-block; flex: none; width: .625rem; height: .625rem; border-radius: 50%; background: var(--cds-chart-muted); }
+.tt-sw-line { display: inline-block; flex: none; width: .75rem; height: 2px; border-radius: 1px; background: var(--cds-chart-muted); }
+.tt-badge { display: inline-flex; align-items: center; font-size: var(--cds-font-size-caption); line-height: 1.25; padding: 0 var(--cds-pad-xs); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); color: var(--color-fg); white-space: nowrap; font-weight: var(--cds-font-weight-medium); }
+.tt-badge-documented { background: var(--color-fg); border-color: var(--color-fg); color: var(--color-panel); }
+.tt-badge-reported { border-color: var(--color-fg-muted); }
+.tt-badge-alleged { border-style: dashed; border-color: var(--color-fg-muted); color: var(--color-fg-muted); }
+.tt-badge-unknown { border-style: dotted; border-color: var(--color-fg); }
+.tt-badge-quiet { color: var(--color-fg-muted); font-weight: 400; }
+.tt-badge-plain { font-weight: 400; }
+.tt-legend { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-md); margin-top: var(--cds-gap-sm); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tt-legend-item { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.tt-key-svg { display: block; flex: none; overflow: visible; }
+
+/* ---------- Filter row ---------- */
+.tt-filters { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-md); margin-bottom: var(--cds-gap-md); }
+.tt-filter-body { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-sm) var(--cds-gap-lg); }
+.tt-filters .tt-filter-toggle { display: none; }
+.tt-fgroup { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs); }
+.tt-fgroup-label { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-right: var(--cds-gap-xs); }
+.tt-chip, .tt-btn { font: inherit; font-size: var(--cds-font-size-caption); display: inline-flex; align-items: center; gap: var(--cds-gap-xs); min-height: 1.75rem; padding: 0 var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-panel); color: var(--color-fg); cursor: pointer; }
+.tt-chip[aria-pressed="true"] { border-color: var(--color-fg); }
+.tt-chip[aria-pressed="false"] { color: var(--color-fg-muted); }
+.tt-chip[aria-pressed="false"] .tt-sw, .tt-chip[aria-pressed="false"] .tt-key-svg { opacity: .3; }
+.tt-btn:hover, .tt-chip:hover { background: var(--color-bg); }
+.tt-btn-icon { min-width: 1.75rem; justify-content: center; padding: 0; }
+.tt-picked { border-color: var(--color-fg); background: var(--color-bg); }
+.tt-range-label { font-size: var(--cds-font-size-caption); color: var(--color-fg); }
+.tt-date { font: inherit; font-size: var(--cds-font-size-caption); min-height: 1.75rem; padding: 0 var(--cds-pad-xs); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); }
+.tt-date:focus-visible, .tt-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.tt-gap-top { margin-top: var(--cds-gap-md); }
+.tt-count { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+
+/* ---------- Cards and charts ---------- */
+.tt-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); margin-bottom: var(--cds-gap-md); position: relative; min-width: 0; }
+.tt-card-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+.tt-card-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-md); max-width: 84ch; }
+.tt-card-callout { font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-md); max-width: 92ch; min-height: 1.4em; }
+.tt-grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-md); }
+.tt-chart { position: relative; width: 100%; }
+.tt-svg { display: block; overflow: visible; }
+.tt-timeline { min-height: 280px; }
+.tt-brush { min-height: 64px; margin-top: var(--cds-gap-sm); }
+.tt-running { min-height: 190px; }
+.tt-network { min-height: 440px; }
+.tt-compare { min-height: 220px; }
+.tt-enforce { min-height: 230px; }
+.tt-senate-chart { min-height: 220px; }
+.tt-empty { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); margin: 0; padding: var(--cds-pad-sm) 0; }
+.tt-multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: var(--cds-gap-lg) var(--cds-gap-md); }
+.tt-mult { min-width: 0; }
+.tt-mult-title { display: flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); margin-bottom: var(--cds-gap-xs); }
+.tt-mult-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin-top: var(--cds-gap-xs); }
+.tt-mult-chart { position: relative; min-height: 160px; }
+.tt-toggle-row { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); margin-top: var(--cds-gap-md); }
+
+/* SVG marks */
+.tt-grid { stroke: var(--cds-chart-grid); stroke-width: 1; }
+.tt-axis-line { stroke: var(--cds-chart-axis); stroke-width: 1; }
+.tt-axis text, .tt-tick { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); font-variant-numeric: tabular-nums; }
+.tt-axis path, .tt-axis line { stroke: var(--cds-chart-axis); }
+.tt-lane-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.tt-term-band { fill: var(--cds-chart-grid); opacity: .45; }
+.tt-term-label, .tt-band-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); }
+.tt-band { fill: var(--cds-chart-grid); opacity: .38; }
+.tt-band-alt { opacity: .14; }
+.tt-window { fill: var(--cds-chart-reference); opacity: .14; }
+.tt-stem { stroke-width: 1.5; opacity: .6; }
+.tt-whisker { stroke-width: 4; opacity: .25; stroke-linecap: round; }
+.tt-dot { stroke-width: 2; }
+.tt-act { fill: var(--cds-chart-muted); stroke: var(--color-panel); stroke-width: 1; }
+.tt-hit { fill: transparent; stroke: none; cursor: pointer; }
+.tt-hit:focus-visible { outline: none; stroke: var(--color-fg); stroke-width: 1.5; }
+.tt-ev.tt-hot .tt-dot, .tt-ev.tt-hot .tt-act { stroke: var(--color-fg); stroke-width: 2.5; }
+.tt-has-hot .tt-ev { opacity: .28; }
+.tt-has-hot .tt-ev.tt-hot { opacity: 1; }
+.tt-dim { opacity: .22; }
+.tt-anno { font-size: var(--cds-font-size-caption); fill: var(--color-fg); paint-order: stroke; stroke: var(--color-panel); stroke-width: 3px; stroke-linejoin: round; font-variant-numeric: tabular-nums; }
+.tt-anno-strong { font-weight: var(--cds-font-weight-medium); }
+.tt-anno-line { stroke: var(--cds-chart-reference); stroke-width: 1; fill: none; }
+.tt-run-line { fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tt-run-area { opacity: .1; stroke: none; }
+.tt-run-dash { fill: none; stroke-width: 2; stroke-dasharray: 5 4; }
+.tt-run-key { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs) var(--cds-gap-lg); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); }
+.tt-run-key-item { display: inline-flex; align-items: center; gap: var(--cds-gap-xs); }
+.tt-run-key-svg { flex: none; overflow: visible; }
+.tt-axis-title { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); }
+.tt-anno-sub { fill: var(--color-fg-muted); }
+.tt-span { stroke-width: 3; stroke-linecap: round; opacity: .45; }
+.tt-end-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+.tt-ink-line { fill: none; stroke: var(--color-fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tt-ink-dot { fill: var(--color-fg); stroke: var(--color-panel); stroke-width: 2; }
+.tt-emph-line { fill: none; stroke: var(--color-fg); stroke-width: 4; stroke-linecap: round; opacity: .35; }
+.tt-bar { fill: var(--color-fg-muted); }
+.tt-bar-track { fill: var(--cds-chart-grid); opacity: .5; }
+.tt-bar-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); font-variant-numeric: tabular-nums; }
+.tt-row-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); }
+.tt-bar-g.tt-picked-bar .tt-bar { stroke: var(--color-fg); stroke-width: 2; }
+.tt-brush-sel { fill: var(--cds-chart-reference); fill-opacity: .18; stroke: var(--color-fg-muted); stroke-width: 1; }
+.tt-brush-handle { fill: var(--color-fg-muted); opacity: .5; }
+.tt-tickmark { stroke-width: 2; stroke-linecap: round; }
+
+/* Network */
+.tt-net-tools { position: absolute; top: var(--cds-pad-xs); right: var(--cds-pad-xs); display: flex; gap: var(--cds-gap-xs); z-index: 2; }
+.tt-net-link { stroke: var(--cds-chart-axis); stroke-width: 1; opacity: .6; }
+.tt-net-link-hit { stroke: transparent; stroke-width: 12; fill: none; cursor: help; }
+.tt-net-person { fill: var(--color-panel); stroke: var(--color-fg); stroke-width: 1.5; cursor: pointer; }
+.tt-net-event { stroke: var(--color-panel); stroke-width: 1.5; cursor: pointer; }
+.tt-net-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); paint-order: stroke; stroke: var(--color-panel); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
+.tt-net-sel .tt-net-person { stroke-width: 3; fill: var(--color-bg); }
+.tt-net-g.tt-focus .tt-net-node, .tt-net-g.tt-focus .tt-net-edge { opacity: .14; }
+.tt-net-g.tt-focus .tt-net-node.tt-on, .tt-net-g.tt-focus .tt-net-edge.tt-on { opacity: 1; }
+.tt-net-node.tt-dim { opacity: .2; }
+.tt-net-canvas { cursor: grab; touch-action: none; }
+.tt-people-wrap { max-height: 20rem; overflow: auto; margin-top: var(--cds-gap-md); }
+
+/* Tooltip popover */
+.tt-tip { position: absolute; z-index: 6; pointer-events: none; background: var(--cds-surface-popover); border: 1px solid var(--cds-border); border-radius: var(--cds-radius); box-shadow: var(--cds-shadow-popover); padding: var(--cds-pad-xs) var(--cds-pad-sm); font-size: var(--cds-font-size-caption); max-width: 20rem; color: var(--color-fg); }
+.tt-tip-head { color: var(--cds-text-secondary); }
+.tt-tip-title { font-weight: var(--cds-font-weight-medium); margin: 2px 0; }
+.tt-tip-line { display: flex; align-items: center; gap: var(--cds-gap-xs); }
+.tt-tip-value { font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
+.tt-tip-muted { color: var(--color-fg-muted); }
+
+/* Detail drawer */
+.tt-drawer { border-color: var(--color-fg-muted); }
+.tt-drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cds-gap-md); margin-bottom: var(--cds-gap-sm); }
+.tt-drawer-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+.tt-drawer-badges { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; }
+.tt-drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-lg); }
+.tt-field { margin: 0 0 var(--cds-gap-sm); font-size: var(--cds-font-size-body); max-width: 80ch; }
+.tt-field-label { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tt-field-note { border-left: 2px solid var(--color-fg-muted); padding-left: var(--cds-pad-sm); }
+.tt-src-list { margin: var(--cds-gap-xs) 0 0; padding-left: 1.2em; font-size: var(--cds-font-size-caption); }
+.tt-src-item { margin-bottom: var(--cds-gap-xs); }
+.tt-src-link { color: var(--color-fg); overflow-wrap: anywhere; }
+.tt-people-list { margin: var(--cds-gap-xs) 0 0; padding-left: 1.2em; font-size: var(--cds-font-size-caption); }
+.tt-items { margin: var(--cds-gap-xs) 0 0; padding-left: 1.2em; font-size: var(--cds-font-size-caption); }
+.tt-item { margin-bottom: var(--cds-gap-sm); }
+.tt-item-head { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; margin-bottom: 2px; }
+
+/* Tables */
+.tt-table-tools { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; margin-bottom: var(--cds-gap-sm); }
+.tt-search { font: inherit; font-size: var(--cds-font-size-body); width: 100%; max-width: 28rem; min-height: 2rem; padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); }
+.tt-table-wrap { max-height: 34rem; overflow: auto; }
+.tt-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
+.tt-th { position: sticky; top: 0; z-index: 1; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); vertical-align: bottom; white-space: nowrap; }
+.tt-th-num { text-align: right; }
+.tt-th-btn { font: inherit; background: none; border: 0; padding: 0; color: var(--color-fg); cursor: pointer; text-align: inherit; min-height: 1.5rem; }
+.tt-th[aria-sort="ascending"] .tt-th-btn::after { content: " \2191"; }
+.tt-th[aria-sort="descending"] .tt-th-btn::after { content: " \2193"; }
+.tt-td { border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); vertical-align: top; }
+.tt-row { cursor: pointer; }
+.tt-row:hover .tt-td, .tt-row.tt-hot .tt-td { background: var(--color-bg); }
+.tt-row:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+.tt-row-open .tt-td { box-shadow: inset 0 -1px 0 var(--color-fg); }
+.tt-num { text-align: right; white-space: nowrap; }
+.tt-nowrap { white-space: nowrap; }
+.tt-cell-kind { display: inline-flex; align-items: baseline; gap: var(--cds-gap-xs); }
+.tt-clamp { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; max-width: 46ch; }
+.tt-wide-col { min-width: 16rem; }
+
+/* Methods */
+.tt-prose { max-width: 82ch; }
+.tt-para { font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-sm); }
+.tt-lead-in { font-weight: var(--cds-font-weight-medium); }
+.tt-key-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr)); gap: var(--cds-gap-md); }
+.tt-key-list { display: flex; flex-direction: column; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); }
+
+/* States */
+.tt-fail { display: flex; align-items: center; justify-content: center; gap: var(--cds-gap-sm); min-height: inherit; color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); text-decoration: none; }
+.tt-fail-dot { width: .375rem; height: .375rem; border-radius: 50%; background: var(--color-bad); flex: none; }
+[data-dash-source-state=empty] { color: transparent; }
+[data-dash-source-state=refreshing] { opacity: .5; transition: opacity var(--cds-dur-slow); }
+
+/* Full Documented Summary */
+.tt-jump-row { margin: var(--cds-gap-md) 0 0; }
+.tt-sum-title { scroll-margin-top: calc(var(--tt-stick, 0px) + var(--cds-gap-md)); margin-top: var(--cds-gap-xl); font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); }
+.tt-sum-glance { display: grid; gap: var(--cds-gap-sm); min-height: 6em; }
+.tt-sum-glance p { margin: 0; font-size: var(--cds-font-size-body); max-width: 92ch; font-variant-numeric: tabular-nums; }
+.tt-reg-wrap { max-height: 46rem; }
+.tt-sum-list { margin: 0; padding-left: 1em; }
+.tt-sum-list li { margin-bottom: 2px; }
+.tt-sum-p { margin: 0 0 var(--cds-gap-xs); }
+.tt-sum-p:last-child { margin-bottom: 0; }
+.tt-sum-lab { color: var(--color-fg-muted); }
+.tt-sum-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tt-sum-src { overflow-wrap: anywhere; }
+.tt-sum-id { font-weight: var(--cds-font-weight-medium); white-space: nowrap; }
+.tt-sum-ids { display: flex; flex-wrap: wrap; gap: 2px var(--cds-gap-xs); }
+.tt-sum-people .tt-badge { margin-bottom: 2px; }
+.tt-sum-col-src { overflow-wrap: anywhere; }
+.tt-sum-also { margin-top: 2px; }
+/* Summary columns get set shares of the card, so no column pushes the table wider than its card; headers wrap. */
+.tt-stack .tt-th { white-space: normal; }
+.tt-sum-t-totals th:nth-child(1) { width: 24%; } .tt-sum-t-totals th:nth-child(2) { width: 11%; } .tt-sum-t-totals th:nth-child(3) { width: 9%; }
+.tt-sum-t-totals th:nth-child(4) { width: 7%; } .tt-sum-t-totals th:nth-child(5) { width: 49%; }
+.tt-sum-t-register th:nth-child(1) { width: 6.5%; } .tt-sum-t-register th:nth-child(2) { width: 9%; } .tt-sum-t-register th:nth-child(3) { width: 15%; }
+.tt-sum-t-register th:nth-child(4) { width: 17%; } .tt-sum-t-register th:nth-child(5) { width: 9%; } .tt-sum-t-register th:nth-child(6) { width: 11%; }
+.tt-sum-t-register th:nth-child(7) { width: 20%; } .tt-sum-t-register th:nth-child(8) { width: 12.5%; }
+.tt-sum-t-inv th:nth-child(1) { width: 9%; } .tt-sum-t-inv th:nth-child(2) { width: 19%; } .tt-sum-t-inv th:nth-child(3) { width: 26%; }
+.tt-sum-t-inv th:nth-child(4) { width: 25%; } .tt-sum-t-inv th:nth-child(5) { width: 9%; } .tt-sum-t-inv th:nth-child(6) { width: 12%; }
+.tt-sum-t-pardons th:nth-child(1) { width: 9%; } .tt-sum-t-pardons th:nth-child(2) { width: 22%; } .tt-sum-t-pardons th:nth-child(3) { width: 22%; }
+.tt-sum-t-pardons th:nth-child(4) { width: 32%; } .tt-sum-t-pardons th:nth-child(5) { width: 15%; }
+.tt-sum-t-people th:nth-child(1) { width: 17%; } .tt-sum-t-people th:nth-child(2) { width: 7%; } .tt-sum-t-people th:nth-child(3) { width: 22%; }
+.tt-sum-t-people th:nth-child(4) { width: 54%; }
+.tt-sum-t-notadded th:nth-child(1) { width: 12%; } .tt-sum-t-notadded th:nth-child(2) { width: 9%; } .tt-sum-t-notadded th:nth-child(3) { width: 22%; }
+.tt-sum-t-notadded th:nth-child(4) { width: 9%; } .tt-sum-t-notadded th:nth-child(5) { width: 33%; } .tt-sum-t-notadded th:nth-child(6) { width: 15%; }
+.tt-sum-t-sources th:nth-child(1) { width: 20%; } .tt-sum-t-sources th:nth-child(2) { width: 52%; } .tt-sum-t-sources th:nth-child(3) { width: 8%; }
+.tt-sum-t-sources th:nth-child(4) { width: 20%; }
+
+@container (max-width: 640px) {
+  .tt-hide-narrow { display: none; }
+  .tt-card { padding: var(--cds-pad-md); }
+}
+/* Summary tables read as stacked records when there is no room for their columns: one block per row, each value under its column's name.
+   The eight-column register stacks first. */
+@container (max-width: 1100px) {
+  .tt-sum-t-register thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tt-sum-t-register, .tt-sum-t-register tbody, .tt-sum-t-register tr, .tt-sum-t-register td { display: block; width: 100%; box-sizing: border-box; }
+  .tt-sum-t-register tr { border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-sm) 0; }
+  .tt-sum-t-register td { border: 0; padding: 2px 0; }
+  .tt-sum-t-register td[data-label]::before { content: attr(data-label); display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .tt-sum-t-register tr.tt-row:hover .tt-td { background: none; }
+}
+@container (max-width: 820px) {
+  .tt-stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tt-stack, .tt-stack tbody, .tt-stack tr, .tt-stack td { display: block; width: 100%; box-sizing: border-box; }
+  .tt-stack tr { border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-sm) 0; }
+  .tt-stack td { border: 0; padding: 2px 0; }
+  .tt-stack td[data-label]::before { content: attr(data-label); display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .tt-stack .tt-num { text-align: left; white-space: normal; }
+  .tt-stack .tt-wide-col { min-width: 0; }
+  .tt-stack td:empty { display: none; }
+  .tt-stack tr.tt-row:hover .tt-td { background: none; }
+}
+
+/* ---------- Phones and narrow windows ----------
+   The tab bar stays at the top as one row that scrolls sideways, with a fade at any end that hides more tabs. The filters
+   fold behind one button that says what is filtered. Long tables become one block per row, with their column names as
+   sort buttons, and show their first rows with a button for more instead of a scroll box inside the page. */
+.tt-tabbar { position: relative; margin-bottom: var(--cds-gap-md); }
+.tt-tabbar::before, .tt-tabbar::after { content: ""; position: absolute; top: 0; bottom: 1px; width: 2.25rem; pointer-events: none; opacity: 0; z-index: 1; }
+.tt-tabbar::before { left: 0; background: linear-gradient(to left, transparent, var(--color-bg)); }
+.tt-tabbar::after { right: 0; background: linear-gradient(to right, transparent, var(--color-bg)); }
+.tt-tabbar[data-more~="left"]::before, .tt-tabbar[data-more~="right"]::after { opacity: 1; }
+.tt-page { scroll-margin-top: calc(var(--tt-bar-h, 3rem) + 4px); }
+.tt-card, .tt-filters, .tt-section-title, .tt-kpis, .tt-page tr, .tt-page [tabindex] { scroll-margin-top: calc(var(--tt-stick, 0px) + var(--cds-gap-sm)); }
+.tt-drawer-foot { display: none; }
+.tt-more-rows { margin-top: var(--cds-gap-sm); }
+.tt-filter-state { color: var(--color-fg-muted); font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.tt-filter-toggle::after { content: "\25BE"; flex: none; margin-left: auto; color: var(--color-fg-muted); }
+.tt-filters.tt-open .tt-filter-toggle::after { content: "\25B4"; }
+.tt-filters.tt-active .tt-filter-state { color: var(--color-fg); }
+.tt-filter-toggle:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.tt-mult-note { font-size: var(--cds-font-size-caption); color: var(--color-fg); margin: var(--cds-gap-xs) 0 0; line-height: 1.5; }
+
+@container (max-width: 640px) {
+  .tt-page { --tt-stick: var(--tt-bar-h, 3rem); }
+  .tt-tabbar { position: sticky; top: 0; z-index: 5; background: var(--color-bg); }
+  .tt-tabs { flex-wrap: nowrap; overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: none; gap: 0; }
+  .tt-tabs::-webkit-scrollbar { display: none; }
+  .tt-tab { flex: none; white-space: nowrap; padding-inline: var(--cds-pad-md); }
+  .tt-guide { padding: var(--cds-pad-xs) var(--cds-pad-md); }
+  .tt-page[data-pres] .tt-page-head { padding: var(--cds-pad-sm) var(--cds-pad-md); }
+  .tt-callout, .tt-kpi { padding: var(--cds-pad-sm) var(--cds-pad-md); }
+  .tt-callouts-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--cds-gap-sm); }
+  .tt-jump { flex: 1 1 100%; justify-content: center; }
+  /* Filters fold behind one button. */
+  .tt-filters { padding: var(--cds-pad-xs); }
+  .tt-filters.tt-active { border-color: var(--color-fg); }
+  .tt-filters .tt-filter-toggle { display: flex; align-items: center; width: 100%; min-height: 2.5rem; gap: var(--cds-gap-xs); padding: 0 var(--cds-pad-sm); font: inherit; font-size: var(--cds-font-size-body);
+    font-weight: var(--cds-font-weight-medium); color: var(--color-fg); border: 0; border-radius: var(--cds-radius); background: none; text-align: left; cursor: pointer; }
+  .tt-filters:not(.tt-open) .tt-filter-body { display: none; }
+  .tt-filter-body { flex-direction: column; align-items: stretch; gap: var(--cds-gap-md); padding: var(--cds-pad-xs) var(--cds-pad-sm) var(--cds-pad-sm); }
+  .tt-fgroup-label { flex-basis: 100%; }
+  /* No scroll boxes inside the page: long tables show their rows a page at a time. */
+  .tt-table-wrap, .tt-people-wrap, .tt-reg-wrap { max-height: none; }
+  .tt-drawer-foot { display: flex; justify-content: flex-end; margin-top: var(--cds-gap-sm); }
+  /* Tables as one block per row; the column names become a row of sort buttons. */
+  .tt-cards, .tt-cards tbody { display: block; width: 100%; }
+  .tt-cards thead { display: block; }
+  .tt-cards thead tr { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs); padding-bottom: var(--cds-pad-sm); border-bottom: 1px solid var(--color-border-line); }
+  .tt-cards thead tr::before { content: "Sort by"; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+  .tt-cards .tt-th { position: static; display: block; border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: 0 var(--cds-pad-sm); background: var(--color-panel); }
+  .tt-cards .tt-th.tt-hide-narrow { display: none; }
+  .tt-cards .tt-th[aria-sort="ascending"], .tt-cards .tt-th[aria-sort="descending"] { border-color: var(--color-fg); }
+  .tt-cards .tt-th-btn { min-height: 2rem; }
+  .tt-cards tbody tr { display: grid; gap: 2px var(--cds-gap-sm); align-items: baseline; padding: var(--cds-pad-sm) var(--cds-pad-xs); border-bottom: 1px solid var(--color-border-line); }
+  .tt-cards td { display: block; border: 0; padding: 0; min-width: 0; }
+  .tt-cards td.tt-hide-narrow { display: none; }
+  .tt-cards td[colspan] { grid-column: 1 / -1; }
+  .tt-cards .tt-wide-col { min-width: 0; }
+  .tt-cards .tt-num { text-align: left; }
+  .tt-cards .tt-badge { white-space: normal; }
+  .tt-cards tr.tt-row:hover, .tt-cards tr.tt-row.tt-hot { background: var(--color-bg); }
+  .tt-cards tr.tt-row:hover .tt-td, .tt-cards tr.tt-row.tt-hot .tt-td { background: none; }
+  .tt-cards tr.tt-row-open { box-shadow: inset 3px 0 0 var(--color-fg); }
+  .tt-cards tr.tt-row-open .tt-td { box-shadow: none; }
+  .tt-cards tr[data-party] { box-shadow: inset 3px 0 0 var(--tt-row-party, transparent); padding-left: var(--cds-pad-sm); }
+  .tt-cards tr[data-party].tt-row-open { box-shadow: inset 3px 0 0 var(--tt-row-party, transparent), inset 0 0 0 1px var(--color-fg); }
+  .tt-cards tr[data-party] .tt-td:first-child { box-shadow: none; }
+  /* Events: date and evidence on top, the event, then the amount. */
+  .tt-cards-events tbody tr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "date tier" "title title" "amount amount"; }
+  .tt-cards-events .tt-f-date { grid-area: date; color: var(--color-fg-muted); }
+  .tt-cards-events .tt-f-evidence_tier { grid-area: tier; }
+  .tt-cards-events .tt-f-title { grid-area: title; font-size: var(--cds-font-size-body); }
+  .tt-cards-events .tt-f-amount_usd { grid-area: amount; font-weight: var(--cds-font-weight-medium); }
+  .tt-cards-events .tt-f-amount_usd:empty { display: none; }
+  /* Senators and Representatives: name and trade value, party and place, then the result. */
+  .tt-cards-members tbody tr { grid-template-columns: auto auto minmax(0, 1fr) auto; grid-template-areas: "name name name value" "party state . flag" "res res res res"; }
+  .tt-cards-members .tt-f-name { grid-area: name; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .tt-cards-members .tt-f-party { grid-area: party; }
+  .tt-cards-members .tt-f-state { grid-area: state; color: var(--color-fg-muted); }
+  .tt-cards-members .tt-f-tv_high { grid-area: value; text-align: right; }
+  .tt-cards-members .tt-f-flagged_trades { grid-area: flag; text-align: right; color: var(--color-fg-muted); }
+  .tt-cards-members .tt-f-flagged_trades::after { content: " flagged"; }
+  .tt-cards-members .tt-f-flagged_trades[data-zero] { display: none; }
+  .tt-cards-members .tt-f-screen_result { grid-area: res; margin-top: 2px; }
+  /* Compare: kind and total, then the president and how many amounts were added. */
+  .tt-cards-compare tbody tr { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "kind total" "pres n"; }
+  .tt-cards-compare .tt-f-kind_label { grid-area: kind; font-weight: var(--cds-font-weight-medium); }
+  .tt-cards-compare .tt-f-total { grid-area: total; text-align: right; font-weight: var(--cds-font-weight-medium); }
+  .tt-cards-compare .tt-f-president { grid-area: pres; }
+  .tt-cards-compare .tt-f-n { grid-area: n; text-align: right; color: var(--color-fg-muted); }
+  .tt-cards-compare .tt-f-n::before { content: attr(data-label) ": "; }
+  /* People: the name, then each count with its name. */
+  .tt-cards-people tbody tr { display: flex; flex-wrap: wrap; gap: 2px var(--cds-gap-md); }
+  .tt-cards-people .tt-f-person { flex-basis: 100%; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+  .tt-cards-people td:not(.tt-f-person)::before { content: attr(data-label) ": "; color: var(--color-fg-muted); }
+}
+
+/* Touch screens: larger tap targets, and text fields at 16px so phones don't zoom in on them. */
+@media (pointer: coarse) {
+  .tt-wrap .tt-tab, .tt-wrap .tt-chip, .tt-wrap .tt-btn, .tt-wrap .tt-date, .tt-wrap .tt-search, .tt-wrap .tt-filters .tt-filter-toggle { min-height: 44px; }
+  .tt-wrap .tt-btn-icon { min-width: 44px; }
+  .tt-wrap .tt-th-btn { min-height: 2.25rem; }
+  .tt-wrap .tt-search, .tt-wrap .tt-date { font-size: 16px; }
+  .tt-wrap .tt-guide-sum, .tt-wrap .tt-more-sum { padding-block: 10px; }
+}
+
+/* Entry motion: played once, on the first draw that has rows. */
+/* ---------- Motion ----------
+   Charts build up the first time they draw: dots pop in left to right in date order, lines draw themselves, bars grow from
+   zero, tiles rise one after another. A page fades up as it opens, and cards rise into place as they scroll into view.
+   None of it plays for readers who ask their system for less motion, or in print. */
+@media (prefers-reduced-motion: no-preference) {
+  .tt-anim .tt-pop { transform-box: fill-box; transform-origin: center; animation: tt-pop var(--tt-dur-mark) var(--cds-ease-overshoot, var(--cds-ease-out)) both; }
+  .tt-anim .tt-rise { transform-box: fill-box; transform-origin: center bottom; animation: tt-rise var(--tt-dur-mark) var(--cds-ease-out) both; }
+  .tt-anim .tt-grow-x { transform-box: fill-box; transform-origin: left center; animation: tt-grow-x var(--tt-dur-mark) var(--cds-ease-out) both; }
+  .tt-anim .tt-draw { stroke-dasharray: 1; animation: tt-draw var(--tt-dur) var(--cds-ease-out) both; }
+  .tt-anim .tt-fade { animation: tt-fade var(--tt-dur-mark) var(--cds-ease-out) both; }
+  .tt-anim .tt-rise-in { animation: tt-rise-in var(--tt-dur-mark) var(--cds-ease-out) both; }
+  .tt-page:not([hidden]) { animation: tt-page-in var(--cds-dur-slow) var(--cds-ease-out) both; }
+  @supports (animation-timeline: view()) {
+    .tt-page .tt-card, .tt-page .tt-kpis { animation: tt-card-in linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
+  }
+  .tt-tab, .tt-chip, .tt-btn, .tt-row .tt-td { transition: background-color var(--cds-dur-base), border-color var(--cds-dur-base), color var(--cds-dur-base); }
+  .tt-guide[open] .tt-guide-grid { animation: tt-rise-in var(--cds-dur-slow) var(--cds-ease-out) both; }
+  @keyframes tt-pop { from { transform: scale(0); } to { transform: scale(1); } }
+  @keyframes tt-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes tt-grow-x { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes tt-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+  @keyframes tt-fade { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes tt-rise-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  @keyframes tt-page-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @keyframes tt-card-in { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: none; } }
+}
+@media print {
+  .tt-wrap *, .tt-wrap { animation: none !important; transition: none !important; }
+  .tt-guide { display: none; }
+}
+.tt-num-badge { fill: var(--color-panel); stroke: var(--color-fg-muted); stroke-width: 1; }
+.tt-num-badge-text { font-size: 10px; fill: var(--color-fg); font-variant-numeric: tabular-nums; }
+.tt-run-notes { list-style: none; margin: var(--cds-gap-xs) 0 0; padding: 0; font-size: var(--cds-font-size-caption); color: var(--color-fg); display: grid; gap: 2px; }
+.tt-run-note { display: block; line-height: 1.45; }
+.tt-run-note-n { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; margin-right: var(--cds-gap-xs); border-radius: 50%; border: 1px solid var(--color-fg-muted); font-size: 10px; vertical-align: 1px; }
+.tt-term-switch { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); }
+.tt-range { stroke: var(--color-fg-muted); stroke-width: 12; stroke-linecap: round; opacity: .9; }
+.tt-range-mid { fill: var(--color-fg); }
+.tt-range-more { fill: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
+
+/* ---------- Reading guide ---------- */
+.tt-guide { margin-top: var(--cds-gap-md); background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-sm) var(--cds-pad-lg); }
+.tt-guide-sum { cursor: pointer; font-weight: var(--cds-font-weight-medium); font-size: var(--cds-font-size-body); padding: var(--cds-pad-xs) 0; }
+.tt-guide-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md) var(--cds-gap-lg); padding: var(--cds-pad-sm) 0 var(--cds-pad-xs); }
+.tt-guide-h { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
+.tt-guide-item p { margin: 0; font-size: var(--cds-font-size-body); line-height: 1.55; }
+.tt-guide-item .tt-badge { vertical-align: 1px; }
+
+/* ---------- Term row on each president's page ---------- */
+.tt-term-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--cds-gap-sm); margin-bottom: var(--cds-gap-sm); }
+.tt-term-pill { display: inline-flex; align-items: center; gap: 6px; font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.tt-term-chip { font-size: var(--cds-font-size-body); min-height: 2.25rem; padding: 0 var(--cds-pad-md); }
+.tt-term-chip[aria-pressed="false"] { color: var(--color-fg); }
+.tt-term-chip[aria-pressed="true"] { border-color: var(--tt-accent); background: color-mix(in srgb, var(--tt-accent) 12%, var(--color-panel)); font-weight: var(--cds-font-weight-medium); }
+.tt-dot-trump { --tt-tab-c: var(--tt-c-trump); }
+.tt-dot-trump1 { --tt-tab-c: var(--tt-c-trump1); }
+.tt-dot-biden { --tt-tab-c: var(--tt-c-biden); }
+.tt-dot-obama { --tt-tab-c: var(--tt-c-obama); }
+.tt-jump { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); min-height: 2.25rem; padding: 0 var(--cds-pad-md);
+  border-color: var(--tt-accent); background: color-mix(in srgb, var(--tt-accent) 12%, var(--color-panel)); }
+.tt-jump:hover { background: color-mix(in srgb, var(--tt-accent) 22%, var(--color-panel)); }
+.tt-jump::after { content: "\2193"; margin-left: 2px; }
+
+/* ---------- Summary page ---------- */
+.tt-sumpres { min-height: 260px; }
+.tt-sumtop { min-height: 300px; }
+.tt-sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 19rem), 1fr)); gap: var(--cds-gap-lg) var(--cds-gap-xl); }
+.tt-sum-box { min-width: 0; }
+.tt-sum-box-title { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); }
+.tt-sum-box-note { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); margin: 2px 0 var(--cds-gap-sm); }
+.tt-sum-box-chart { position: relative; }
+.tt-none-label { fill: var(--color-fg-muted); font-style: italic; }
+.tt-strong-label { font-weight: var(--cds-font-weight-medium); }
+.tt-range-bar { opacity: .9; }
+.tt-more { margin: var(--cds-gap-md) 0 0; }
+
+/* ---------- Keys ---------- */
+.tt-key-box { margin-top: var(--cds-gap-sm); }
+.tt-more-key { margin-top: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tt-more-sum { cursor: pointer; color: var(--color-fg); font-size: var(--cds-font-size-caption); padding: 2px 0; }
+.tt-color-key { display: grid; gap: var(--cds-gap-sm); margin-top: var(--cds-gap-sm); }
+.tt-color-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--cds-gap-xs) var(--cds-gap-md); font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+.tt-color-head { font-weight: var(--cds-font-weight-medium); color: var(--color-fg); min-width: 9rem; }
+
+/* ---------- Summary: two groups in the presidents' chart, and trade-value bars ---------- */
+.tt-sum-group { margin-bottom: var(--cds-gap-lg); }
+.tt-sum-group:last-child { margin-bottom: 0; }
+.tt-sum-group-title { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0 0 2px; }
+.tt-sum-group-note { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); max-width: 84ch; }
+.tt-tv-min { opacity: 1; }
+.tt-tv-max { opacity: .32; }
+/* The key above each trade-value chart: party colors, then the two shades said in words beside a sample bar per party. */
+.tt-legend-top { margin: 0 0 var(--cds-gap-md); }
+.tt-tv-explain { flex-basis: 100%; display: flex; align-items: flex-start; gap: var(--cds-gap-sm); margin: 2px 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg); line-height: 1.5; max-width: 92ch; }
+.tt-tv-samples { display: inline-flex; flex-direction: column; gap: 4px; flex: none; padding-top: 3px; }
+.tt-tv-sample { position: relative; display: block; width: 3rem; height: .625rem; border-radius: 4px; overflow: hidden; }
+.tt-tv-sample::before { content: ""; position: absolute; inset: 0; background: var(--tt-sample-c); opacity: .32; }
+.tt-tv-sample::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 40%; border-radius: 4px; background: var(--tt-sample-c); }
+.tt-tv-sample-R { --tt-sample-c: var(--tt-c-R); }
+.tt-tv-sample-D { --tt-sample-c: var(--tt-c-D); }
+.tt-tile-sub { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); min-height: 1.2em; }
+.tt-sum-search-note { fill: var(--color-fg-muted); font-style: italic; }
+.tt-group-label { font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); fill: var(--color-fg-muted); text-transform: none; }
+/* Timeline dots: area grows with the amount; filled dots are added to totals, hollow ones are shown only. */
+.tt-lane-line { stroke: var(--cds-chart-grid); stroke-width: 1; }
+.tt-bubble { fill-opacity: .8; stroke-width: 1.5; }
+.tt-bubble-hollow { fill-opacity: 1; }
+.tt-size-key { gap: 2px; }
+.tt-size-dot { fill: none; stroke: var(--color-fg-muted); stroke-width: 1.5; }
+
+</style>
+<div class="tt-wrap">
+  <header class="tt-head" id="top">
+    <h1 class="tt-title">Policy timing &amp; conflicts tracker</h1>
+    <p class="tt-sub">Money that reached presidents’ families and connected firms, trades placed just before government announcements, and what investigators did about it, for Trump, Biden and Obama, plus the same check of every senator and 55 House members. Every item links to its sources. Being listed here is not proof of wrongdoing.</p>
+    <details class="tt-guide" id="guide" open>
+      <summary class="tt-guide-sum">How to read this dashboard</summary>
+      <div class="tt-guide-grid">
+        <div class="tt-guide-item"><h2 class="tt-guide-h">Start with Summary</h2><p>Three charts compare the presidents, the senators and the House members. Each president’s tab then shows everything found for that term, ending in a Full Documented Summary.</p></div>
+        <div class="tt-guide-item"><h2 class="tt-guide-h">Colors</h2><p><span class="tt-party tt-party-R"><span class="tt-party-dot" aria-hidden="true"></span>Red</span> is Trump (a darker red for his first term) and <span class="tt-party tt-party-D"><span class="tt-party-dot" aria-hidden="true"></span>blue</span> is Biden and Obama (navy for Obama): it marks money that reached the family or connected firms. <span class="tt-party tt-party-T"><span class="tt-party-dot" aria-hidden="true"></span>Gray</span> marks trades placed just before government news, mostly by others; <span class="tt-party tt-party-M"><span class="tt-party-dot" aria-hidden="true"></span>light gray</span> is background, never added up. On the Senate and House pages red is Republican, blue Democrat and dark gray independent; in their trade-value bars the darker part is the lowest possible total and the lighter part runs on to the highest.</p></div>
+        <div class="tt-guide-item"><h2 class="tt-guide-h">How sure is each item?</h2><p><span class="tt-badge tt-badge-documented">Documented</span> in official records. <span class="tt-badge tt-badge-reported">Reported</span> by major news outlets, not proven in court. <span class="tt-badge tt-badge-alleged">Alleged</span> by lawmakers or watchdogs, not confirmed.</p></div>
+        <div class="tt-guide-item"><h2 class="tt-guide-h">Click anything</h2><p>Every dot, bar and row opens its record: what happened, who is named and why, what investigators did, and links to every source.</p></div>
+      </div>
+    </details>
+  </header>
+  <div class="tt-tabbar" id="tabbar"><nav class="tt-tabs" role="tablist" aria-label="Pages"><button type="button" class="tt-tab" role="tab" data-page="summary" id="tab-summary" aria-controls="summary" aria-selected="true">Summary</button><button type="button" class="tt-tab" role="tab" data-page="trump" id="tab-trump" aria-controls="trump" data-also="trump1" aria-selected="false"><span class="tt-tab-dot" aria-hidden="true"></span>Trump</button><button type="button" class="tt-tab" role="tab" data-page="biden" id="tab-biden" aria-controls="biden" aria-selected="false"><span class="tt-tab-dot" aria-hidden="true"></span>Biden 2021–25</button><button type="button" class="tt-tab" role="tab" data-page="obama" id="tab-obama" aria-controls="obama" aria-selected="false"><span class="tt-tab-dot" aria-hidden="true"></span>Obama 2009–17</button><button type="button" class="tt-tab" role="tab" data-page="compare" id="tab-compare" aria-controls="compare" aria-selected="false">Compare</button><button type="button" class="tt-tab" role="tab" data-page="senate" id="tab-senate" aria-controls="senate" aria-selected="false">Senate</button><button type="button" class="tt-tab" role="tab" data-page="house" id="tab-house" aria-controls="house" aria-selected="false">House</button><button type="button" class="tt-tab" role="tab" data-page="methods" id="tab-methods" aria-controls="methods" aria-selected="false">Methods</button></nav></div>
+  
+<section class="tt-page" id="summary" aria-labelledby="tab-summary">
+  <div class="tt-page-head" id="summary-head">
+    <p class="tt-takeaway">Three comparisons drawn from every record in this dashboard: what reached each president’s family and connected firms while in office, and how much senators and House members reported trading. Each chart links to its full page.</p>
+  </div>
+  <div class="tt-card" id="sum-pres-card">
+    <h3 class="tt-card-title" id="sum-pres-title">Presidents: what happened while each was in office, kind by kind</h3>
+    <p class="tt-card-note">Each box is one kind of money, with a bar for each president or term. A longer bar means more money. Each box has its own scale, so compare the bars inside a box, not between boxes. “None found” means the research found nothing that qualified, not that nothing happened; “Not fully searched” means the research didn’t cover it for that term.</p>
+    <div class="tt-chart tt-sumpres dash-skeleton" id="sum-pres" data-source="family_totals"></div>
+    <div class="tt-legend" id="sum-pres-legend" aria-label="Key"></div>
+    <p class="tt-more"><button type="button" class="tt-btn" data-goto="compare">See the full comparison</button></p>
+  </div>
+  <div class="tt-card" id="sum-senate-card">
+    <h3 class="tt-card-title" id="sum-senate-title">Senators: who reported the most stock trading (value bought and sold, not profit)</h3>
+    <p class="tt-card-callout dash-skeleton" id="sum-senate-take" data-source="senate_totals">—</p>
+    <p class="tt-card-note">The ten senators who reported the most trading since 2012, in their party’s color. Each bar is the value of the stocks they bought and sold, not a profit. Members report each trade as a range, such as $1,001–$15,000, so the darker part of each bar is the least it could be and the lighter part runs on to the most. A + means only part of their trades could be listed. Trading stocks is legal.</p>
+    <div class="tt-legend tt-legend-top" id="sum-senate-legend" aria-label="Key"></div>
+    <div class="tt-chart tt-sumtop dash-skeleton" id="sum-senate" data-source="senate"></div>
+    <p class="tt-more"><button type="button" class="tt-btn" data-goto="senate">See all 100 senators</button></p>
+  </div>
+  <div class="tt-card" id="sum-house-card">
+    <h3 class="tt-card-title" id="sum-house-title">House members: who reported the most stock trading (value bought and sold, not profit)</h3>
+    <p class="tt-card-callout dash-skeleton" id="sum-house-take" data-source="house_totals">—</p>
+    <p class="tt-card-note">The ten of the 55 Representatives checked who reported the most trading, in their party’s color. Each bar is the value of the stocks they bought and sold, not a profit: the darker part is the least it could be, the lighter part runs on to the most. Trackers listed each member’s recent trades, so most totals cover only part of a record and are marked +. Trading stocks is legal.</p>
+    <div class="tt-legend tt-legend-top" id="sum-house-legend" aria-label="Key"></div>
+    <div class="tt-chart tt-sumtop dash-skeleton" id="sum-house" data-source="house"></div>
+    <p class="tt-more"><button type="button" class="tt-btn" data-goto="house">See all 55 Representatives</button></p>
+  </div>
+</section>
+<section class="tt-page" id="trump" data-pres="Trump (2nd term)" aria-labelledby="tab-trump" hidden>
+  <div class="tt-page-head" id="trump-head">
+    <div class="tt-term-row"><div class="tt-term-switch" role="group" aria-label="Which Trump term"><button type="button" class="tt-chip tt-term-chip" data-goto="trump" aria-pressed="true"><span class="tt-tab-dot tt-dot-trump" aria-hidden="true"></span>Second term, 2025–now</button><button type="button" class="tt-chip tt-term-chip" data-goto="trump1" aria-pressed="false"><span class="tt-tab-dot tt-dot-trump1" aria-hidden="true"></span>First term, 2017–21</button></div><button type="button" class="tt-btn tt-jump" data-jump="trump-summary">Read the Full Documented Summary</button></div>
+    <p class="tt-span-note">In office Jan 20, 2025 to today. Totals add up only individual, dated amounts. Different kinds of money are never added together.</p>
+    <p class="tt-takeaway dash-skeleton" id="trump-takeaway">—</p>
+    <div class="tt-callouts" id="trump-callouts">
+      <div class="tt-callout" id="trump-c-office">
+        <div class="tt-callout-label">Events while in office</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="in_office" data-where="president=Trump (2nd term)">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump-c-office-sub">—</div>
+      </div>
+      <div class="tt-callout" id="trump-c-tier">
+        <div class="tt-callout-label">Backed by official records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="facet_counts" data-field="n" data-where="president=Trump (2nd term)&amp;facet=tier&amp;value=Documented">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump-c-tier-sub">—</div>
+      </div>
+      <div class="tt-callout" id="trump-c-outcomes">
+        <div class="tt-callout-label">With an outcome or response on record</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="with_record" data-where="president=Trump (2nd term)">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump-c-outcomes-sub">—</div>
+      </div>
+      <div class="tt-callout" id="trump-c-people">
+        <div class="tt-callout-label">People named in the records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="people" data-where="president=Trump (2nd term)">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump-c-people-sub">—</div>
+      </div>
+    </div>
+  </div>
+  <h2 class="tt-section-title" id="trump-totals-title">Money while in office, by kind</h2>
+  <p class="tt-section-note">Each box adds up one kind of money. Its color shows the group: the president’s color for money to the family and connected firms, the second color for trades. Click an item’s name to see its record and sources.</p>
+  <div class="tt-kpis dash-skeleton" id="trump-kpis" data-source="family_totals key_events"></div>
+  <div class="tt-filters" id="trump-filters" role="group" aria-label="Filters for the timeline, running totals and table">
+    <button type="button" class="tt-filter-toggle" id="trump-ftoggle" aria-expanded="false" aria-controls="trump-fbody">Filters <span class="tt-filter-state" id="trump-fstate">Showing everything</span></button>
+    <div class="tt-filter-body" id="trump-fbody">
+      <div class="tt-fgroup" id="trump-f-kind" data-source="events"><span class="tt-fgroup-label">Show</span></div>
+      <div class="tt-fgroup" id="trump-f-tier" data-source="events"><span class="tt-fgroup-label">How sure</span></div>
+      <div class="tt-fgroup" id="trump-f-dates"><span class="tt-fgroup-label">Dates</span>
+        <input class="tt-date" id="trump-from" type="date" aria-label="From date">
+        <span class="tt-range-label">to</span>
+        <input class="tt-date" id="trump-to" type="date" aria-label="To date">
+      </div>
+      <div class="tt-fgroup" id="trump-f-more"></div>
+    </div>
+  </div>
+  <div class="tt-card" id="trump-timeline-card">
+    <h3 class="tt-card-title">Everything on one timeline</h3>
+    <p class="tt-card-note">Each dot is one event, placed at its date, in a row for its kind of money. A bigger dot means a bigger amount (the key under the chart gives sizes). Filled dots count toward the totals; hollow dots are shown but not added. The top row holds investigations, pardons and other actions. Tap or hover over any dot for its details, and drag across the strip under the chart to zoom in on a period.</p>
+    <div class="tt-chart tt-timeline dash-skeleton" id="trump-timeline" data-source="events key_events"></div>
+    <div class="tt-chart tt-brush dash-skeleton" id="trump-brush" data-source="events"></div>
+    <div class="tt-key-box" id="trump-legend" data-source="events" aria-label="Key"></div>
+  </div>
+  <div class="tt-card tt-drawer" id="trump-detail" data-source="events people" hidden></div>
+  <div class="tt-card" id="trump-running-card">
+    <h3 class="tt-card-title">How the money added up while in office</h3>
+    <p class="tt-card-note">Each line climbs when money comes in and stays flat until the next amount. Its height is the total so far. Each box has its own scale, so compare the shape of the lines, not their heights.</p>
+    <div class="tt-chart tt-running dash-skeleton" id="trump-running" data-source="running_totals key_events family_totals"></div>
+  </div>
+  <div class="tt-card" id="trump-table-card">
+    <h3 class="tt-card-title">Every event, as a list</h3>
+    <p class="tt-card-note">The same events as the charts above, with the same filters. Sort by any column or search; click a row for the full record: who is named and why, what investigators did, any denial, and every source.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump-search" type="search" placeholder="Search events, people, outcomes" aria-label="Search events"></div>
+    <div class="tt-table-wrap"><table class="tt-table tt-cards tt-cards-events" id="trump-table" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" data-field="date" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Date</button></th><th class="tt-th" data-field="title" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Event</button></th><th class="tt-th tt-hide-narrow" data-source="event_labels" data-field="kind_label" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Kind of money</button></th><th class="tt-th tt-th-num" data-field="amount_usd" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Amount</button></th><th class="tt-th" data-field="evidence_tier" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Evidence</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="source_count" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Sources</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-people-card">
+    <h3 class="tt-card-title">People named in the records</h3>
+    <p class="tt-card-note">Everyone a source names in this term’s events, with the role the source gives them. Being named is not an accusation. Click a person to show only their events; trades by unknown traders are never pinned on anyone.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump-people-search" type="search" placeholder="Search people" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-people-wrap"><table class="tt-table tt-cards tt-cards-people" id="trump-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" data-field="person" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Person</button></th><th class="tt-th tt-th-num" data-field="events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Events naming them</button></th><th class="tt-th tt-th-num" data-field="co_people" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Others named with them</button></th><th class="tt-th tt-th-num" data-field="counted_events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Of those, added to a total</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <h2 class="tt-section-title tt-sum-title" id="trump-summary">Full Documented Summary</h2>
+  <p class="tt-section-note">It covers every record for this term, whatever its evidence label (documented, reported or alleged). Every record on file for this term, written out with its sources: what is counted and why, each dated event with the people its sources name, how investigations ended, pardons, and what is shown but not added. It is built from the same records as the charts above. Click an ID for the full record.</p>
+  <div class="tt-card" id="trump-sum-glance-card">
+    <h3 class="tt-card-title">At a glance</h3>
+    <div class="tt-sum-glance dash-skeleton" id="trump-sum-glance" data-source="summary_stats"></div>
+  </div>
+  <div class="tt-card" id="trump-sum-totals-card">
+    <h3 class="tt-card-title">Money counted, by kind and period</h3>
+    <p class="tt-card-note">Each kind of money is totalled on its own, before, during and after the term; kinds are never added to each other. Each row names its largest single entry.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-totals" id="trump-sum-totals" data-source="family_totals" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Kind of money</th><th class="tt-th" scope="col">Period</th><th class="tt-th tt-th-num" scope="col">Total</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Largest entry</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-sum-register-card">
+    <h3 class="tt-card-title">Every event in full</h3>
+    <p class="tt-card-note">Every record in date order, with the people a cited source names and the role it documents, the evidence tier, how any money counts, the investigation status or outcome, any response, denial or dispute, and every source. “Trader unidentified” means no trader has been publicly named; nobody here is linked to an anonymous trade.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump-sum-search" type="search" placeholder="Search events, people, outcomes, sources" aria-label="Search the event register"><div class="tt-fgroup" id="trump-sum-tiers"><span class="tt-fgroup-label">Evidence</span></div><div class="tt-fgroup" id="trump-sum-periods"><span class="tt-fgroup-label">Period</span></div></div>
+    <p class="tt-count" id="trump-sum-count"></p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-register" id="trump-sum-register" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">ID</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Event</th><th class="tt-th" scope="col">People named and their documented roles</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Money and how it counts</th><th class="tt-th" scope="col">Outcome and response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-sum-inv-card">
+    <h3 class="tt-card-title">Investigations, charges and outcomes</h3>
+    <p class="tt-card-note">Inquiries, charges, lawsuits, dropped cases and other enforcement actions on record, with how each ended or where it stands, and any response.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-inv" id="trump-sum-inv" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Matter</th><th class="tt-th" scope="col">Status or outcome</th><th class="tt-th" scope="col">Response, denial or dispute</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-sum-pardons-card">
+    <h3 class="tt-card-title">Pardons and clemency</h3>
+    <p class="tt-card-note">Pardons and commutations on record for this term, with the ties their sources document and the reason given. Pardons are shown, never added. Where two records cover the same grant, each row says so.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-pardons" id="trump-sum-pardons" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Pardon or clemency</th><th class="tt-th" scope="col">People and their ties</th><th class="tt-th" scope="col">Stated reason or response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-sum-people-card">
+    <h3 class="tt-card-title">People and how sources connect them</h3>
+    <p class="tt-card-note">Everyone a cited source names in this term’s records, the relationship and roles it documents, and which records name them. Being named is not an accusation.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump-sum-people-search" type="search" placeholder="Search people, relationships, roles" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-people" id="trump-sum-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Person</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Relationship</th><th class="tt-th" scope="col">Records and the role each documents</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-sum-notadded-card">
+    <h3 class="tt-card-title">Amounts shown but not added up, and why</h3>
+    <p class="tt-card-note">Amounts on record that are not added to any total, and why: officials’ and allies’ trades, donations, penalties, valuations, project values, ordinary business revenue, possible double counts and amounts without dates.</p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-notadded" id="trump-sum-notadded" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Kind</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Item</th><th class="tt-th tt-th-num" scope="col">Amount</th><th class="tt-th" scope="col">Why it is not added</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump-sum-sources-card">
+    <h3 class="tt-card-title">Sources</h3>
+    <p class="tt-card-note dash-skeleton" id="trump-sum-sources-note" data-source="summary_stats"></p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump-sum-sources-search" type="search" placeholder="Search sites and pages" aria-label="Search sources"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-sources" id="trump-sum-sources" data-source="source_index" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Site</th><th class="tt-th" scope="col">Page</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Cited by</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+<section class="tt-page" id="trump1" data-pres="Trump (1st term)" aria-labelledby="tab-trump" hidden>
+  <div class="tt-page-head" id="trump1-head">
+    <div class="tt-term-row"><div class="tt-term-switch" role="group" aria-label="Which Trump term"><button type="button" class="tt-chip tt-term-chip" data-goto="trump" aria-pressed="false"><span class="tt-tab-dot tt-dot-trump" aria-hidden="true"></span>Second term, 2025–now</button><button type="button" class="tt-chip tt-term-chip" data-goto="trump1" aria-pressed="true"><span class="tt-tab-dot tt-dot-trump1" aria-hidden="true"></span>First term, 2017–21</button></div><button type="button" class="tt-btn tt-jump" data-jump="trump1-summary">Read the Full Documented Summary</button></div>
+    <p class="tt-span-note">In office Jan 20, 2017 to Jan 20, 2021. Totals add up only individual, dated amounts. Different kinds of money are never added together.</p>
+    <p class="tt-takeaway dash-skeleton" id="trump1-takeaway">—</p>
+    <div class="tt-callouts" id="trump1-callouts">
+      <div class="tt-callout" id="trump1-c-office">
+        <div class="tt-callout-label">Events while in office</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="in_office" data-where="president=Trump (1st term)">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump1-c-office-sub">—</div>
+      </div>
+      <div class="tt-callout" id="trump1-c-tier">
+        <div class="tt-callout-label">Backed by official records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="facet_counts" data-field="n" data-where="president=Trump (1st term)&amp;facet=tier&amp;value=Documented">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump1-c-tier-sub">—</div>
+      </div>
+      <div class="tt-callout" id="trump1-c-outcomes">
+        <div class="tt-callout-label">With an outcome or response on record</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="with_record" data-where="president=Trump (1st term)">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump1-c-outcomes-sub">—</div>
+      </div>
+      <div class="tt-callout" id="trump1-c-people">
+        <div class="tt-callout-label">People named in the records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="people" data-where="president=Trump (1st term)">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="trump1-c-people-sub">—</div>
+      </div>
+    </div>
+  </div>
+  <h2 class="tt-section-title" id="trump1-totals-title">Money while in office, by kind</h2>
+  <p class="tt-section-note">Each box adds up one kind of money. Its color shows the group: the president’s color for money to the family and connected firms, the second color for trades. Click an item’s name to see its record and sources.</p>
+  <div class="tt-kpis dash-skeleton" id="trump1-kpis" data-source="family_totals key_events"></div>
+  <div class="tt-filters" id="trump1-filters" role="group" aria-label="Filters for the timeline, running totals and table">
+    <button type="button" class="tt-filter-toggle" id="trump1-ftoggle" aria-expanded="false" aria-controls="trump1-fbody">Filters <span class="tt-filter-state" id="trump1-fstate">Showing everything</span></button>
+    <div class="tt-filter-body" id="trump1-fbody">
+      <div class="tt-fgroup" id="trump1-f-kind" data-source="events"><span class="tt-fgroup-label">Show</span></div>
+      <div class="tt-fgroup" id="trump1-f-tier" data-source="events"><span class="tt-fgroup-label">How sure</span></div>
+      <div class="tt-fgroup" id="trump1-f-dates"><span class="tt-fgroup-label">Dates</span>
+        <input class="tt-date" id="trump1-from" type="date" aria-label="From date">
+        <span class="tt-range-label">to</span>
+        <input class="tt-date" id="trump1-to" type="date" aria-label="To date">
+      </div>
+      <div class="tt-fgroup" id="trump1-f-more"></div>
+    </div>
+  </div>
+  <div class="tt-card" id="trump1-timeline-card">
+    <h3 class="tt-card-title">Everything on one timeline</h3>
+    <p class="tt-card-note">Each dot is one event, placed at its date, in a row for its kind of money. A bigger dot means a bigger amount (the key under the chart gives sizes). Filled dots count toward the totals; hollow dots are shown but not added. The top row holds investigations, pardons and other actions. Tap or hover over any dot for its details, and drag across the strip under the chart to zoom in on a period.</p>
+    <div class="tt-chart tt-timeline dash-skeleton" id="trump1-timeline" data-source="events key_events"></div>
+    <div class="tt-chart tt-brush dash-skeleton" id="trump1-brush" data-source="events"></div>
+    <div class="tt-key-box" id="trump1-legend" data-source="events" aria-label="Key"></div>
+  </div>
+  <div class="tt-card tt-drawer" id="trump1-detail" data-source="events people" hidden></div>
+  <div class="tt-card" id="trump1-running-card">
+    <h3 class="tt-card-title">How the money added up while in office</h3>
+    <p class="tt-card-note">Each line climbs when money comes in and stays flat until the next amount. Its height is the total so far. Each box has its own scale, so compare the shape of the lines, not their heights.</p>
+    <div class="tt-chart tt-running dash-skeleton" id="trump1-running" data-source="running_totals key_events family_totals"></div>
+  </div>
+  <div class="tt-card" id="trump1-table-card">
+    <h3 class="tt-card-title">Every event, as a list</h3>
+    <p class="tt-card-note">The same events as the charts above, with the same filters. Sort by any column or search; click a row for the full record: who is named and why, what investigators did, any denial, and every source.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump1-search" type="search" placeholder="Search events, people, outcomes" aria-label="Search events"></div>
+    <div class="tt-table-wrap"><table class="tt-table tt-cards tt-cards-events" id="trump1-table" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" data-field="date" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Date</button></th><th class="tt-th" data-field="title" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Event</button></th><th class="tt-th tt-hide-narrow" data-source="event_labels" data-field="kind_label" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Kind of money</button></th><th class="tt-th tt-th-num" data-field="amount_usd" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Amount</button></th><th class="tt-th" data-field="evidence_tier" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Evidence</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="source_count" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Sources</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-people-card">
+    <h3 class="tt-card-title">People named in the records</h3>
+    <p class="tt-card-note">Everyone a source names in this term’s events, with the role the source gives them. Being named is not an accusation. Click a person to show only their events; trades by unknown traders are never pinned on anyone.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump1-people-search" type="search" placeholder="Search people" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-people-wrap"><table class="tt-table tt-cards tt-cards-people" id="trump1-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" data-field="person" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Person</button></th><th class="tt-th tt-th-num" data-field="events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Events naming them</button></th><th class="tt-th tt-th-num" data-field="co_people" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Others named with them</button></th><th class="tt-th tt-th-num" data-field="counted_events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Of those, added to a total</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <h2 class="tt-section-title tt-sum-title" id="trump1-summary">Full Documented Summary</h2>
+  <p class="tt-section-note">It covers every record for this term, whatever its evidence label (documented, reported or alleged). Every record on file for this term, written out with its sources: what is counted and why, each dated event with the people its sources name, how investigations ended, pardons, and what is shown but not added. It is built from the same records as the charts above. Click an ID for the full record.</p>
+  <div class="tt-card" id="trump1-sum-glance-card">
+    <h3 class="tt-card-title">At a glance</h3>
+    <div class="tt-sum-glance dash-skeleton" id="trump1-sum-glance" data-source="summary_stats"></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-totals-card">
+    <h3 class="tt-card-title">Money counted, by kind and period</h3>
+    <p class="tt-card-note">Each kind of money is totalled on its own, before, during and after the term; kinds are never added to each other. Each row names its largest single entry.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-totals" id="trump1-sum-totals" data-source="family_totals" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Kind of money</th><th class="tt-th" scope="col">Period</th><th class="tt-th tt-th-num" scope="col">Total</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Largest entry</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-register-card">
+    <h3 class="tt-card-title">Every event in full</h3>
+    <p class="tt-card-note">Every record in date order, with the people a cited source names and the role it documents, the evidence tier, how any money counts, the investigation status or outcome, any response, denial or dispute, and every source. “Trader unidentified” means no trader has been publicly named; nobody here is linked to an anonymous trade.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump1-sum-search" type="search" placeholder="Search events, people, outcomes, sources" aria-label="Search the event register"><div class="tt-fgroup" id="trump1-sum-tiers"><span class="tt-fgroup-label">Evidence</span></div><div class="tt-fgroup" id="trump1-sum-periods"><span class="tt-fgroup-label">Period</span></div></div>
+    <p class="tt-count" id="trump1-sum-count"></p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-register" id="trump1-sum-register" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">ID</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Event</th><th class="tt-th" scope="col">People named and their documented roles</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Money and how it counts</th><th class="tt-th" scope="col">Outcome and response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-inv-card">
+    <h3 class="tt-card-title">Investigations, charges and outcomes</h3>
+    <p class="tt-card-note">Inquiries, charges, lawsuits, dropped cases and other enforcement actions on record, with how each ended or where it stands, and any response.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-inv" id="trump1-sum-inv" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Matter</th><th class="tt-th" scope="col">Status or outcome</th><th class="tt-th" scope="col">Response, denial or dispute</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-pardons-card">
+    <h3 class="tt-card-title">Pardons and clemency</h3>
+    <p class="tt-card-note">Pardons and commutations on record for this term, with the ties their sources document and the reason given. Pardons are shown, never added. Where two records cover the same grant, each row says so.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-pardons" id="trump1-sum-pardons" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Pardon or clemency</th><th class="tt-th" scope="col">People and their ties</th><th class="tt-th" scope="col">Stated reason or response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-people-card">
+    <h3 class="tt-card-title">People and how sources connect them</h3>
+    <p class="tt-card-note">Everyone a cited source names in this term’s records, the relationship and roles it documents, and which records name them. Being named is not an accusation.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump1-sum-people-search" type="search" placeholder="Search people, relationships, roles" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-people" id="trump1-sum-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Person</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Relationship</th><th class="tt-th" scope="col">Records and the role each documents</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-notadded-card">
+    <h3 class="tt-card-title">Amounts shown but not added up, and why</h3>
+    <p class="tt-card-note">Amounts on record that are not added to any total, and why: officials’ and allies’ trades, donations, penalties, valuations, project values, ordinary business revenue, possible double counts and amounts without dates.</p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-notadded" id="trump1-sum-notadded" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Kind</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Item</th><th class="tt-th tt-th-num" scope="col">Amount</th><th class="tt-th" scope="col">Why it is not added</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="trump1-sum-sources-card">
+    <h3 class="tt-card-title">Sources</h3>
+    <p class="tt-card-note dash-skeleton" id="trump1-sum-sources-note" data-source="summary_stats"></p>
+    <div class="tt-table-tools"><input class="tt-search" id="trump1-sum-sources-search" type="search" placeholder="Search sites and pages" aria-label="Search sources"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-sources" id="trump1-sum-sources" data-source="source_index" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Site</th><th class="tt-th" scope="col">Page</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Cited by</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+<section class="tt-page" id="biden" data-pres="Biden" aria-labelledby="tab-biden" hidden>
+  <div class="tt-page-head" id="biden-head">
+    <div class="tt-term-row"><span class="tt-term-pill"><span class="tt-tab-dot tt-dot-biden" aria-hidden="true"></span>One term, 2021–25</span><button type="button" class="tt-btn tt-jump" data-jump="biden-summary">Read the Full Documented Summary</button></div>
+    <p class="tt-span-note">In office Jan 20, 2021 to Jan 20, 2025. Totals add up only individual, dated amounts. Different kinds of money are never added together.</p>
+    <p class="tt-takeaway dash-skeleton" id="biden-takeaway">—</p>
+    <div class="tt-callouts" id="biden-callouts">
+      <div class="tt-callout" id="biden-c-office">
+        <div class="tt-callout-label">Events while in office</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="in_office" data-where="president=Biden">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="biden-c-office-sub">—</div>
+      </div>
+      <div class="tt-callout" id="biden-c-tier">
+        <div class="tt-callout-label">Backed by official records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="facet_counts" data-field="n" data-where="president=Biden&amp;facet=tier&amp;value=Documented">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="biden-c-tier-sub">—</div>
+      </div>
+      <div class="tt-callout" id="biden-c-outcomes">
+        <div class="tt-callout-label">With an outcome or response on record</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="with_record" data-where="president=Biden">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="biden-c-outcomes-sub">—</div>
+      </div>
+      <div class="tt-callout" id="biden-c-people">
+        <div class="tt-callout-label">People named in the records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="people" data-where="president=Biden">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="biden-c-people-sub">—</div>
+      </div>
+    </div>
+  </div>
+  <h2 class="tt-section-title" id="biden-totals-title">Money while in office, by kind</h2>
+  <p class="tt-section-note">Each box adds up one kind of money. Its color shows the group: the president’s color for money to the family and connected firms, the second color for trades. Click an item’s name to see its record and sources.</p>
+  <div class="tt-kpis dash-skeleton" id="biden-kpis" data-source="family_totals key_events"></div>
+  <div class="tt-filters" id="biden-filters" role="group" aria-label="Filters for the timeline, running totals and table">
+    <button type="button" class="tt-filter-toggle" id="biden-ftoggle" aria-expanded="false" aria-controls="biden-fbody">Filters <span class="tt-filter-state" id="biden-fstate">Showing everything</span></button>
+    <div class="tt-filter-body" id="biden-fbody">
+      <div class="tt-fgroup" id="biden-f-kind" data-source="events"><span class="tt-fgroup-label">Show</span></div>
+      <div class="tt-fgroup" id="biden-f-tier" data-source="events"><span class="tt-fgroup-label">How sure</span></div>
+      <div class="tt-fgroup" id="biden-f-dates"><span class="tt-fgroup-label">Dates</span>
+        <input class="tt-date" id="biden-from" type="date" aria-label="From date">
+        <span class="tt-range-label">to</span>
+        <input class="tt-date" id="biden-to" type="date" aria-label="To date">
+      </div>
+      <div class="tt-fgroup" id="biden-f-more"></div>
+    </div>
+  </div>
+  <div class="tt-card" id="biden-timeline-card">
+    <h3 class="tt-card-title">Everything on one timeline</h3>
+    <p class="tt-card-note">Each dot is one event, placed at its date, in a row for its kind of money. A bigger dot means a bigger amount (the key under the chart gives sizes). Filled dots count toward the totals; hollow dots are shown but not added. The top row holds investigations, pardons and other actions. Tap or hover over any dot for its details, and drag across the strip under the chart to zoom in on a period.</p>
+    <div class="tt-chart tt-timeline dash-skeleton" id="biden-timeline" data-source="events key_events"></div>
+    <div class="tt-chart tt-brush dash-skeleton" id="biden-brush" data-source="events"></div>
+    <div class="tt-key-box" id="biden-legend" data-source="events" aria-label="Key"></div>
+  </div>
+  <div class="tt-card tt-drawer" id="biden-detail" data-source="events people" hidden></div>
+  <div class="tt-card" id="biden-running-card">
+    <h3 class="tt-card-title">How the money added up while in office</h3>
+    <p class="tt-card-note">Each line climbs when money comes in and stays flat until the next amount. Its height is the total so far. Each box has its own scale, so compare the shape of the lines, not their heights.</p>
+    <div class="tt-chart tt-running dash-skeleton" id="biden-running" data-source="running_totals key_events family_totals"></div>
+  </div>
+  <div class="tt-card" id="biden-table-card">
+    <h3 class="tt-card-title">Every event, as a list</h3>
+    <p class="tt-card-note">The same events as the charts above, with the same filters. Sort by any column or search; click a row for the full record: who is named and why, what investigators did, any denial, and every source.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="biden-search" type="search" placeholder="Search events, people, outcomes" aria-label="Search events"></div>
+    <div class="tt-table-wrap"><table class="tt-table tt-cards tt-cards-events" id="biden-table" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" data-field="date" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Date</button></th><th class="tt-th" data-field="title" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Event</button></th><th class="tt-th tt-hide-narrow" data-source="event_labels" data-field="kind_label" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Kind of money</button></th><th class="tt-th tt-th-num" data-field="amount_usd" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Amount</button></th><th class="tt-th" data-field="evidence_tier" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Evidence</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="source_count" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Sources</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-people-card">
+    <h3 class="tt-card-title">People named in the records</h3>
+    <p class="tt-card-note">Everyone a source names in this term’s events, with the role the source gives them. Being named is not an accusation. Click a person to show only their events; trades by unknown traders are never pinned on anyone.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="biden-people-search" type="search" placeholder="Search people" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-people-wrap"><table class="tt-table tt-cards tt-cards-people" id="biden-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" data-field="person" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Person</button></th><th class="tt-th tt-th-num" data-field="events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Events naming them</button></th><th class="tt-th tt-th-num" data-field="co_people" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Others named with them</button></th><th class="tt-th tt-th-num" data-field="counted_events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Of those, added to a total</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <h2 class="tt-section-title tt-sum-title" id="biden-summary">Full Documented Summary</h2>
+  <p class="tt-section-note">It covers every record for this term, whatever its evidence label (documented, reported or alleged). Every record on file for this term, written out with its sources: what is counted and why, each dated event with the people its sources name, how investigations ended, pardons, and what is shown but not added. It is built from the same records as the charts above. Click an ID for the full record.</p>
+  <div class="tt-card" id="biden-sum-glance-card">
+    <h3 class="tt-card-title">At a glance</h3>
+    <div class="tt-sum-glance dash-skeleton" id="biden-sum-glance" data-source="summary_stats"></div>
+  </div>
+  <div class="tt-card" id="biden-sum-totals-card">
+    <h3 class="tt-card-title">Money counted, by kind and period</h3>
+    <p class="tt-card-note">Each kind of money is totalled on its own, before, during and after the term; kinds are never added to each other. Each row names its largest single entry.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-totals" id="biden-sum-totals" data-source="family_totals" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Kind of money</th><th class="tt-th" scope="col">Period</th><th class="tt-th tt-th-num" scope="col">Total</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Largest entry</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-sum-register-card">
+    <h3 class="tt-card-title">Every event in full</h3>
+    <p class="tt-card-note">Every record in date order, with the people a cited source names and the role it documents, the evidence tier, how any money counts, the investigation status or outcome, any response, denial or dispute, and every source. “Trader unidentified” means no trader has been publicly named; nobody here is linked to an anonymous trade.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="biden-sum-search" type="search" placeholder="Search events, people, outcomes, sources" aria-label="Search the event register"><div class="tt-fgroup" id="biden-sum-tiers"><span class="tt-fgroup-label">Evidence</span></div><div class="tt-fgroup" id="biden-sum-periods"><span class="tt-fgroup-label">Period</span></div></div>
+    <p class="tt-count" id="biden-sum-count"></p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-register" id="biden-sum-register" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">ID</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Event</th><th class="tt-th" scope="col">People named and their documented roles</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Money and how it counts</th><th class="tt-th" scope="col">Outcome and response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-sum-inv-card">
+    <h3 class="tt-card-title">Investigations, charges and outcomes</h3>
+    <p class="tt-card-note">Inquiries, charges, lawsuits, dropped cases and other enforcement actions on record, with how each ended or where it stands, and any response.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-inv" id="biden-sum-inv" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Matter</th><th class="tt-th" scope="col">Status or outcome</th><th class="tt-th" scope="col">Response, denial or dispute</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-sum-pardons-card">
+    <h3 class="tt-card-title">Pardons and clemency</h3>
+    <p class="tt-card-note">Pardons and commutations on record for this term, with the ties their sources document and the reason given. Pardons are shown, never added. Where two records cover the same grant, each row says so.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-pardons" id="biden-sum-pardons" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Pardon or clemency</th><th class="tt-th" scope="col">People and their ties</th><th class="tt-th" scope="col">Stated reason or response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-sum-people-card">
+    <h3 class="tt-card-title">People and how sources connect them</h3>
+    <p class="tt-card-note">Everyone a cited source names in this term’s records, the relationship and roles it documents, and which records name them. Being named is not an accusation.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="biden-sum-people-search" type="search" placeholder="Search people, relationships, roles" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-people" id="biden-sum-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Person</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Relationship</th><th class="tt-th" scope="col">Records and the role each documents</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-sum-notadded-card">
+    <h3 class="tt-card-title">Amounts shown but not added up, and why</h3>
+    <p class="tt-card-note">Amounts on record that are not added to any total, and why: officials’ and allies’ trades, donations, penalties, valuations, project values, ordinary business revenue, possible double counts and amounts without dates.</p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-notadded" id="biden-sum-notadded" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Kind</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Item</th><th class="tt-th tt-th-num" scope="col">Amount</th><th class="tt-th" scope="col">Why it is not added</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="biden-sum-sources-card">
+    <h3 class="tt-card-title">Sources</h3>
+    <p class="tt-card-note dash-skeleton" id="biden-sum-sources-note" data-source="summary_stats"></p>
+    <div class="tt-table-tools"><input class="tt-search" id="biden-sum-sources-search" type="search" placeholder="Search sites and pages" aria-label="Search sources"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-sources" id="biden-sum-sources" data-source="source_index" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Site</th><th class="tt-th" scope="col">Page</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Cited by</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+<section class="tt-page" id="obama" data-pres="Obama" aria-labelledby="tab-obama" hidden>
+  <div class="tt-page-head" id="obama-head">
+    <div class="tt-term-row"><span class="tt-term-pill"><span class="tt-tab-dot tt-dot-obama" aria-hidden="true"></span>Two terms, 2009–17</span><button type="button" class="tt-btn tt-jump" data-jump="obama-summary">Read the Full Documented Summary</button></div>
+    <p class="tt-span-note">In office Jan 20, 2009 to Jan 20, 2017. Totals add up only individual, dated amounts. Different kinds of money are never added together.</p>
+    <p class="tt-takeaway dash-skeleton" id="obama-takeaway">—</p>
+    <div class="tt-callouts" id="obama-callouts">
+      <div class="tt-callout" id="obama-c-office">
+        <div class="tt-callout-label">Events while in office</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="in_office" data-where="president=Obama">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="obama-c-office-sub">—</div>
+      </div>
+      <div class="tt-callout" id="obama-c-tier">
+        <div class="tt-callout-label">Backed by official records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="facet_counts" data-field="n" data-where="president=Obama&amp;facet=tier&amp;value=Documented">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="obama-c-tier-sub">—</div>
+      </div>
+      <div class="tt-callout" id="obama-c-outcomes">
+        <div class="tt-callout-label">With an outcome or response on record</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="with_record" data-where="president=Obama">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="obama-c-outcomes-sub">—</div>
+      </div>
+      <div class="tt-callout" id="obama-c-people">
+        <div class="tt-callout-label">People named in the records</div>
+        <div class="tt-big dash-skeleton" data-fill="count" data-source="president_stats" data-field="people" data-where="president=Obama">—</div>
+        <div class="tt-callout-sub dash-skeleton" id="obama-c-people-sub">—</div>
+      </div>
+    </div>
+  </div>
+  <h2 class="tt-section-title" id="obama-totals-title">Money while in office, by kind</h2>
+  <p class="tt-section-note">Each box adds up one kind of money. Its color shows the group: the president’s color for money to the family and connected firms, the second color for trades. Click an item’s name to see its record and sources.</p>
+  <div class="tt-kpis dash-skeleton" id="obama-kpis" data-source="family_totals key_events"></div>
+  <div class="tt-filters" id="obama-filters" role="group" aria-label="Filters for the timeline, running totals and table">
+    <button type="button" class="tt-filter-toggle" id="obama-ftoggle" aria-expanded="false" aria-controls="obama-fbody">Filters <span class="tt-filter-state" id="obama-fstate">Showing everything</span></button>
+    <div class="tt-filter-body" id="obama-fbody">
+      <div class="tt-fgroup" id="obama-f-kind" data-source="events"><span class="tt-fgroup-label">Show</span></div>
+      <div class="tt-fgroup" id="obama-f-tier" data-source="events"><span class="tt-fgroup-label">How sure</span></div>
+      <div class="tt-fgroup" id="obama-f-dates"><span class="tt-fgroup-label">Dates</span>
+        <input class="tt-date" id="obama-from" type="date" aria-label="From date">
+        <span class="tt-range-label">to</span>
+        <input class="tt-date" id="obama-to" type="date" aria-label="To date">
+      </div>
+      <div class="tt-fgroup" id="obama-f-more"></div>
+    </div>
+  </div>
+  <div class="tt-card" id="obama-timeline-card">
+    <h3 class="tt-card-title">Everything on one timeline</h3>
+    <p class="tt-card-note">Each dot is one event, placed at its date, in a row for its kind of money. A bigger dot means a bigger amount (the key under the chart gives sizes). Filled dots count toward the totals; hollow dots are shown but not added. The top row holds investigations, pardons and other actions. Tap or hover over any dot for its details, and drag across the strip under the chart to zoom in on a period.</p>
+    <div class="tt-chart tt-timeline dash-skeleton" id="obama-timeline" data-source="events key_events"></div>
+    <div class="tt-chart tt-brush dash-skeleton" id="obama-brush" data-source="events"></div>
+    <div class="tt-key-box" id="obama-legend" data-source="events" aria-label="Key"></div>
+  </div>
+  <div class="tt-card tt-drawer" id="obama-detail" data-source="events people" hidden></div>
+  <div class="tt-card" id="obama-running-card">
+    <h3 class="tt-card-title">How the money added up while in office</h3>
+    <p class="tt-card-note">Each line climbs when money comes in and stays flat until the next amount. Its height is the total so far. Each box has its own scale, so compare the shape of the lines, not their heights.</p>
+    <div class="tt-chart tt-running dash-skeleton" id="obama-running" data-source="running_totals key_events family_totals"></div>
+  </div>
+  <div class="tt-card" id="obama-table-card">
+    <h3 class="tt-card-title">Every event, as a list</h3>
+    <p class="tt-card-note">The same events as the charts above, with the same filters. Sort by any column or search; click a row for the full record: who is named and why, what investigators did, any denial, and every source.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="obama-search" type="search" placeholder="Search events, people, outcomes" aria-label="Search events"></div>
+    <div class="tt-table-wrap"><table class="tt-table tt-cards tt-cards-events" id="obama-table" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" data-field="date" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Date</button></th><th class="tt-th" data-field="title" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Event</button></th><th class="tt-th tt-hide-narrow" data-source="event_labels" data-field="kind_label" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Kind of money</button></th><th class="tt-th tt-th-num" data-field="amount_usd" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Amount</button></th><th class="tt-th" data-field="evidence_tier" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Evidence</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="source_count" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Sources</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-people-card">
+    <h3 class="tt-card-title">People named in the records</h3>
+    <p class="tt-card-note">Everyone a source names in this term’s events, with the role the source gives them. Being named is not an accusation. Click a person to show only their events; trades by unknown traders are never pinned on anyone.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="obama-people-search" type="search" placeholder="Search people" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-people-wrap"><table class="tt-table tt-cards tt-cards-people" id="obama-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" data-field="person" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Person</button></th><th class="tt-th tt-th-num" data-field="events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Events naming them</button></th><th class="tt-th tt-th-num" data-field="co_people" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Others named with them</button></th><th class="tt-th tt-th-num" data-field="counted_events" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Of those, added to a total</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <h2 class="tt-section-title tt-sum-title" id="obama-summary">Full Documented Summary</h2>
+  <p class="tt-section-note">It covers every record for this term, whatever its evidence label (documented, reported or alleged). Every record on file for this term, written out with its sources: what is counted and why, each dated event with the people its sources name, how investigations ended, pardons, and what is shown but not added. It is built from the same records as the charts above. Click an ID for the full record.</p>
+  <div class="tt-card" id="obama-sum-glance-card">
+    <h3 class="tt-card-title">At a glance</h3>
+    <div class="tt-sum-glance dash-skeleton" id="obama-sum-glance" data-source="summary_stats"></div>
+  </div>
+  <div class="tt-card" id="obama-sum-totals-card">
+    <h3 class="tt-card-title">Money counted, by kind and period</h3>
+    <p class="tt-card-note">Each kind of money is totalled on its own, before, during and after the term; kinds are never added to each other. Each row names its largest single entry.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-totals" id="obama-sum-totals" data-source="family_totals" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Kind of money</th><th class="tt-th" scope="col">Period</th><th class="tt-th tt-th-num" scope="col">Total</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Largest entry</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-sum-register-card">
+    <h3 class="tt-card-title">Every event in full</h3>
+    <p class="tt-card-note">Every record in date order, with the people a cited source names and the role it documents, the evidence tier, how any money counts, the investigation status or outcome, any response, denial or dispute, and every source. “Trader unidentified” means no trader has been publicly named; nobody here is linked to an anonymous trade.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="obama-sum-search" type="search" placeholder="Search events, people, outcomes, sources" aria-label="Search the event register"><div class="tt-fgroup" id="obama-sum-tiers"><span class="tt-fgroup-label">Evidence</span></div><div class="tt-fgroup" id="obama-sum-periods"><span class="tt-fgroup-label">Period</span></div></div>
+    <p class="tt-count" id="obama-sum-count"></p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-register" id="obama-sum-register" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">ID</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Event</th><th class="tt-th" scope="col">People named and their documented roles</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Money and how it counts</th><th class="tt-th" scope="col">Outcome and response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-sum-inv-card">
+    <h3 class="tt-card-title">Investigations, charges and outcomes</h3>
+    <p class="tt-card-note">Inquiries, charges, lawsuits, dropped cases and other enforcement actions on record, with how each ended or where it stands, and any response.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-inv" id="obama-sum-inv" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Matter</th><th class="tt-th" scope="col">Status or outcome</th><th class="tt-th" scope="col">Response, denial or dispute</th><th class="tt-th" scope="col">Evidence</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-sum-pardons-card">
+    <h3 class="tt-card-title">Pardons and clemency</h3>
+    <p class="tt-card-note">Pardons and commutations on record for this term, with the ties their sources document and the reason given. Pardons are shown, never added. Where two records cover the same grant, each row says so.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack tt-sum-t-pardons" id="obama-sum-pardons" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Pardon or clemency</th><th class="tt-th" scope="col">People and their ties</th><th class="tt-th" scope="col">Stated reason or response</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-sum-people-card">
+    <h3 class="tt-card-title">People and how sources connect them</h3>
+    <p class="tt-card-note">Everyone a cited source names in this term’s records, the relationship and roles it documents, and which records name them. Being named is not an accusation.</p>
+    <div class="tt-table-tools"><input class="tt-search" id="obama-sum-people-search" type="search" placeholder="Search people, relationships, roles" aria-label="Search people"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-people" id="obama-sum-people" data-source="person_network" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Person</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Relationship</th><th class="tt-th" scope="col">Records and the role each documents</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-sum-notadded-card">
+    <h3 class="tt-card-title">Amounts shown but not added up, and why</h3>
+    <p class="tt-card-note">Amounts on record that are not added to any total, and why: officials’ and allies’ trades, donations, penalties, valuations, project values, ordinary business revenue, possible double counts and amounts without dates.</p>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-notadded" id="obama-sum-notadded" data-source="events" data-row-key="id"><thead><tr><th class="tt-th" scope="col">Kind</th><th class="tt-th" scope="col">Date</th><th class="tt-th" scope="col">Item</th><th class="tt-th tt-th-num" scope="col">Amount</th><th class="tt-th" scope="col">Why it is not added</th><th class="tt-th" scope="col">Sources</th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="obama-sum-sources-card">
+    <h3 class="tt-card-title">Sources</h3>
+    <p class="tt-card-note dash-skeleton" id="obama-sum-sources-note" data-source="summary_stats"></p>
+    <div class="tt-table-tools"><input class="tt-search" id="obama-sum-sources-search" type="search" placeholder="Search sites and pages" aria-label="Search sources"></div>
+    <div class="tt-table-wrap tt-reg-wrap"><table class="tt-table tt-stack tt-sum-t-sources" id="obama-sum-sources" data-source="source_index" data-row-key="key"><thead><tr><th class="tt-th" scope="col">Site</th><th class="tt-th" scope="col">Page</th><th class="tt-th tt-th-num" scope="col">Records</th><th class="tt-th" scope="col">Cited by</th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+  
+<section class="tt-page" id="compare" aria-labelledby="tab-compare" hidden>
+  <div class="tt-page-head" id="compare-head">
+    <p class="tt-takeaway">The same counting rules for every president. Keep in mind that terms differ in length (eight years, four years, and 21 months so far), that research went deeper in some areas than others (see Methods), and that profits are usually published only when someone is charged.</p>
+  </div>
+  <div class="tt-card" id="compare-totals-card">
+    <h3 class="tt-card-title">Money while in office: each president, kind by kind</h3>
+    <p class="tt-card-note">One row per kind of money, with a mark in each president’s color. Each row has its own scale starting at zero, so compare along a row, not between rows. A missing mark means the research found nothing that qualified, not that nothing happened.</p>
+    <div class="tt-chart tt-compare dash-skeleton" id="compare-dots" data-source="family_totals"></div>
+    <div class="tt-legend" id="compare-legend" data-source="family_totals" aria-label="Key"></div>
+    <div class="tt-table-wrap tt-gap-top"><table class="tt-table tt-cards tt-cards-compare" id="compare-table" data-source="family_totals" data-row-key="key"><thead><tr><th class="tt-th" data-field="kind_label" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Kind of money</button></th><th class="tt-th" data-field="president" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">President</button></th><th class="tt-th tt-th-num" data-field="total" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">In-office total</button></th><th class="tt-th tt-th-num" data-field="n" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Events added</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card" id="enforcement-card">
+    <h3 class="tt-card-title">How many cases market regulators brought each year</h3>
+    <p class="tt-card-note">Official yearly counts from the SEC (stocks) and the CFTC (commodities and futures), and TRAC’s count of Justice Department white-collar prosecutions, with each presidency shaded. Counting methods changed in some years (the SEC’s in 2013); each point’s notes say how. Years without a count are left blank.</p>
+    <p class="tt-card-callout dash-skeleton" id="enforcement-callout">—</p>
+    <div class="tt-chart tt-enforce dash-skeleton" id="enforcement-chart" data-source="enforcement enforcement_yoy"></div>
+  </div>
+</section>
+  
+<section class="tt-page" id="senate" aria-labelledby="tab-senate" hidden>
+  <div class="tt-page-head" id="senate-head">
+    <p class="tt-span-note">Every current senator checked the same way for stock trading and money conflicts since the 2012 STOCK Act, the law that makes members of Congress report their trades. “Nothing found in our quick check” means just that; it is not a clean bill of health.</p>
+    <p class="tt-takeaway dash-skeleton" id="senate-takeaway">—</p>
+    <div class="tt-callouts tt-callouts-2" id="senate-callouts">
+      <div class="tt-callout">
+        <div class="tt-callout-label">Trades questioned by news or watchdogs</div>
+        <div class="tt-big dash-skeleton" id="senate-c-flagged" data-fill="count" data-source="senate_totals" data-field="flagged_trades" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="senate-c-flagged-sub" data-source="senate_totals"></div>
+      </div>
+      <div class="tt-callout">
+        <div class="tt-callout-label">Late trade reports</div>
+        <div class="tt-big dash-skeleton" id="senate-c-late" data-fill="count" data-source="senate_totals" data-field="late_filings" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="senate-c-late-sub" data-source="senate_totals"></div>
+      </div>
+      <div class="tt-callout">
+        <div class="tt-callout-label">Inquiries or complaints</div>
+        <div class="tt-big dash-skeleton" id="senate-c-inq" data-fill="count" data-source="senate_totals" data-field="inquiries" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="senate-c-inq-sub" data-source="senate_totals"></div>
+      </div>
+      <div class="tt-callout">
+        <div class="tt-callout-label">Family or business ties reported</div>
+        <div class="tt-big dash-skeleton" id="senate-c-ties" data-fill="count" data-source="senate_totals" data-field="family_ties" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="senate-c-ties-sub" data-source="senate_totals"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tt-card" id="senate-summary-card">
+    <h3 class="tt-card-title">What the check found, by party</h3>
+    <p class="tt-card-note">How many senators got each result, out of each party’s seats: red for Republicans, blue for Democrats, gray for independents. All bars share one scale. Click a bar to list those senators below.</p>
+    <div class="tt-chart tt-senate-chart dash-skeleton" id="senate-chart" data-source="senate_summary"></div>
+  </div>
+  <div class="tt-card" id="senate-values-card">
+    <h3 class="tt-card-title">Value of stocks each senator reported buying and selling (not profit)</h3>
+    <p class="tt-card-note">Senators report each trade as a range, such as $1,001–$15,000, so each total is a range too: the darker part of each bar is the lowest possible total, and the lighter part runs on to the highest. Trades from 2012 to 2020 come from the Senate’s own filings; 2021 to October 2026 from trackers of the same filings. A + means only part of a senator’s trades could be listed, so the real total is higher. Some 2021–2026 lists include trades a senator reported as a House member; each record says which. Trading is legal.</p>
+    <div class="tt-chart tt-values dash-skeleton" id="senate-values" data-source="senate"></div>
+  </div>
+  <div class="tt-card" id="senate-table-card">
+    <h3 class="tt-card-title">Every senator</h3>
+    <p class="tt-card-note">Sort by any column or search. The colored edge and dot show the party. Click a row for each finding with its outcome and sources, trade values and how they were counted, the senator’s stance on a stock-trading ban, and committees.</p>
+    <div class="tt-table-tools">
+      <input id="senate-search" class="tt-search" type="search" placeholder="Search names, states, results, committees" aria-label="Search senators">
+      <button type="button" class="tt-chip tt-picked" id="senate-picked" hidden></button>
+    </div>
+    <div class="tt-table-wrap" id="senate-table-wrap"><table class="tt-table tt-cards tt-cards-members" id="senate-table" data-source="senate" data-row-key="senator"><thead><tr><th class="tt-th" data-field="senator" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Senator</button></th><th class="tt-th" data-field="party" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Party</button></th><th class="tt-th" data-field="state" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">State</button></th><th class="tt-th tt-hide-narrow" data-field="trades_individual_stocks" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Trades stocks</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="disclosed_transactions" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Disclosed trades</button></th><th class="tt-th tt-th-num" data-field="tv_high" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Trade value</button></th><th class="tt-th tt-th-num" data-field="flagged_trades" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Flagged trades</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="late_filing_violations" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Late filings</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="investigations_or_complaints" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Inquiries</button></th><th class="tt-th" data-field="screen_result" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Screen result</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card tt-drawer" id="senate-detail" data-source="senate senate_items" hidden></div>
+</section>
+  
+<section class="tt-page" id="house" aria-labelledby="tab-house" hidden>
+  <div class="tt-page-head" id="house-head">
+    <p class="tt-span-note">The same quick check as the Senate, for 55 current Representatives picked by fixed rules rather than by name: the most active traders of 2025, anyone named for late or missing trade reports or a trading inquiry, and both parties’ leaders (Speaker Mike Johnson, Steve Scalise, Tom Emmer, Hakeem Jeffries, Katherine Clark and Speaker Emerita Nancy Pelosi). It is not every House member, so these counts are not a rate for the whole House. Some members’ reported trades are a spouse’s; each record says whose.</p>
+    <p class="tt-takeaway dash-skeleton" id="house-takeaway">—</p>
+    <div class="tt-callouts tt-callouts-2" id="house-callouts">
+      <div class="tt-callout">
+        <div class="tt-callout-label">Trades questioned by news or watchdogs</div>
+        <div class="tt-big dash-skeleton" id="house-c-flagged" data-fill="count" data-source="house_totals" data-field="flagged_trades" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="house-c-flagged-sub" data-source="house_totals"></div>
+      </div>
+      <div class="tt-callout">
+        <div class="tt-callout-label">Late trade reports</div>
+        <div class="tt-big dash-skeleton" id="house-c-late" data-fill="count" data-source="house_totals" data-field="late_filings" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="house-c-late-sub" data-source="house_totals"></div>
+      </div>
+      <div class="tt-callout">
+        <div class="tt-callout-label">Inquiries or complaints</div>
+        <div class="tt-big dash-skeleton" id="house-c-inq" data-fill="count" data-source="house_totals" data-field="inquiries" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="house-c-inq-sub" data-source="house_totals"></div>
+      </div>
+      <div class="tt-callout">
+        <div class="tt-callout-label">Family or business ties reported</div>
+        <div class="tt-big dash-skeleton" id="house-c-ties" data-fill="count" data-source="house_totals" data-field="family_ties" data-where="party=All">—</div>
+        <div class="tt-tile-sub" id="house-c-ties-sub" data-source="house_totals"></div>
+      </div>
+    </div>
+  </div>
+  <div class="tt-card" id="house-summary-card">
+    <h3 class="tt-card-title">What the check found, by party</h3>
+    <p class="tt-card-note">How many Representatives got each result, out of each party’s members checked: red for Republicans, blue for Democrats, gray for independents. All bars share one scale. Click a bar to list those Representatives below.</p>
+    <div class="tt-chart tt-senate-chart dash-skeleton" id="house-chart" data-source="house_summary"></div>
+  </div>
+  <div class="tt-card" id="house-values-card">
+    <h3 class="tt-card-title">Value of stocks each Representative reported buying and selling (not profit)</h3>
+    <p class="tt-card-note">Members report each trade as a range, so each total is a range too: the darker part of each bar is the lowest possible total, and the lighter part runs on to the highest. Trackers showed only each member’s most recent trades, often the latest 40, so most totals cover part of a member’s record; a + marks those, and their real totals are higher. Each record says which trades were counted. Trading is legal.</p>
+    <div class="tt-chart tt-values dash-skeleton" id="house-values" data-source="house"></div>
+  </div>
+  <div class="tt-card" id="house-table-card">
+    <h3 class="tt-card-title">Every Representative</h3>
+    <p class="tt-card-note">Sort by any column or search. The colored edge and dot show the party. Click a row for each finding with its outcome and sources, trade values and how they were counted, the Representative’s stance on a stock-trading ban, and committees.</p>
+    <div class="tt-table-tools">
+      <input id="house-search" class="tt-search" type="search" placeholder="Search names, states, results, committees" aria-label="Search Representatives">
+      <button type="button" class="tt-chip tt-picked" id="house-picked" hidden></button>
+    </div>
+    <div class="tt-table-wrap" id="house-table-wrap"><table class="tt-table tt-cards tt-cards-members" id="house-table" data-source="house" data-row-key="member"><thead><tr><th class="tt-th" data-field="member" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Representative</button></th><th class="tt-th" data-field="party" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Party</button></th><th class="tt-th" data-field="state" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">District</button></th><th class="tt-th tt-hide-narrow" data-field="trades_individual_stocks" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Trades stocks</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="disclosed_transactions" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Disclosed trades</button></th><th class="tt-th tt-th-num" data-field="tv_high" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Trade value</button></th><th class="tt-th tt-th-num" data-field="flagged_trades" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Flagged trades</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="late_filing_violations" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Late filings</button></th><th class="tt-th tt-th-num tt-hide-narrow" data-field="investigations_or_complaints" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Inquiries</button></th><th class="tt-th" data-field="screen_result" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Screen result</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+  <div class="tt-card tt-drawer" id="house-detail" data-source="house house_items" hidden></div>
+</section>
+  
+<section class="tt-page" id="methods" aria-labelledby="tab-methods" hidden>
+  <div class="tt-card tt-prose" id="methods-card">
+    <h3 class="tt-card-title">How this tracker works</h3>
+    <p class="tt-para"><span class="tt-lead-in">How sure is each item?</span> Every event carries a label. <span class="tt-badge tt-badge-documented">Documented</span> means it is in official records: court filings, government data, agency releases or financial disclosures. <span class="tt-badge tt-badge-reported">Reported</span> means major news outlets reported it, citing documents or sources; it has not been proven in court. <span class="tt-badge tt-badge-alleged">Alleged</span> means lawmakers, watchdogs or people in a dispute claim it; it is not confirmed.</p>
+    <p class="tt-para"><span class="tt-lead-in">Who is named.</span> A person is named on an event only when a source documents their role, and that role is shown with them. Trades by unknown traders stay marked <span class="tt-badge tt-badge-unknown">Trader unidentified</span> and are never pinned on anyone; a person listed on such an event is there for a different, documented role. Denials, responses and outcomes, including acquittals, dismissals and findings of no wrongdoing, are recorded with each event.</p>
+    <p class="tt-para"><span class="tt-lead-in">What gets added up.</span> Only individual, dated amounts are added to a total (filled dots). The same rule for every president: specific payments are added (book, speaking and licensing deals, payments from foreign governments), while salaries, pensions and whole-year income totals from tax returns or annual disclosures are shown but not added. Tallies of many events, company valuations, project values and market-wide moves are shown for context but never added (hollow dots). Different kinds of money (trade size, profits, payments, investments, contracts) are never added together. A contract counts as linked to the family or a donor only when the tie existed before the award and was more than a token holding.</p>
+    <p class="tt-para"><span class="tt-lead-in">Amounts for a period.</span> Some amounts cover a period rather than a day, like a year’s income from a tax return or a token sale that stayed open for weeks. On the timeline they get a bar along the dates they cover. In the running totals they are spread evenly across the period and drawn dashed, because the exact dates aren’t known.</p>
+    <p class="tt-para"><span class="tt-lead-in">Comparing presidents.</span> Terms differ in length. Insider-trading cases that are charged publish profits; anonymous trades usually don’t, so reported profits are a floor. Research also went deeper in some areas than others; the table below lists what each search did not reach. Something not searched is a gap, not proof that nothing happened.</p>
+    <p class="tt-para"><span class="tt-lead-in">Checking any number.</span> Each event’s record lists every source and how to check it yourself: exchange data, court dockets, disclosure filings, contract records. On Claude, the Sources panel shows where each number on the page comes from, with its rows to download and each calculation’s formula.</p>
+    <p class="tt-para"><span class="tt-lead-in">Colors.</span> Each president has a color: red for Trump (a brighter red for his second term, a darker red for his first) and blue for Biden and Obama (a lighter blue for Biden, navy for Obama). On each president’s page that color marks money to the family and connected firms; trades placed just before government news, mostly by others, are gray on every page, and light gray marks background that is never added up. On the Senate and House pages, red is Republican, blue is Democrat and gray is independent. In the bars of trade values, the darker part of a bar is the lowest the total could be and the lighter part runs on to the highest, because members report each trade as a range. Color is never the only cue: every chart also has labels, a key or a list.</p>
+    <div class="tt-color-key" id="methods-kinds" aria-label="Colors on each page"></div>
+  </div>
+  <div class="tt-card" id="coverage-card">
+    <h3 class="tt-card-title">What the research covered, and what it missed</h3>
+    <p class="tt-card-note">What each area of research searched, and what it did not reach before its search limit.</p>
+    <div class="tt-table-wrap"><table class="tt-table tt-stack" id="coverage-table" data-source="coverage" data-row-key="key"><thead><tr><th class="tt-th" data-field="president" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">President</button></th><th class="tt-th" data-field="lane" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Lane</button></th><th class="tt-th" data-field="status" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Status</button></th><th class="tt-th" data-field="searched" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Searched</button></th><th class="tt-th" data-field="not_reached" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Not reached</button></th><th class="tt-th" data-field="note" aria-sort="none" scope="col"><button type="button" class="tt-th-btn">Note</button></th></tr></thead><tbody></tbody></table></div>
+  </div>
+</section>
+</div>
+</div>
+<footer class="site-foot">
+  <div class="site-card">
+    <h2>Data and sources</h2>
+    <p>Every chart and number on this page is worked out in your browser from these files, which you can download. Each event’s record lists its own sources and how to check it yourself. Compiled from public filings, court and agency records, and major news reporting; being listed is not proof of wrongdoing. Data as of October 18, 2026; page built October 19, 2026.</p>
+    <ul><li><a href="data/events.csv" download>Events: presidents</a> <span class="site-muted">(412 rows, CSV)</span><br><span class="site-muted">One row per dated event (Trump&#x27;s second term and the years before it, Trump&#x27;s first term, Biden, Obama) from the research lanes: trades before announcements, money to family ventures, awards to linked firms, enforcement actions and pardons. Each row has its amount, the period it covers, people with documented roles, evidence tier, counting rule (chart_family, in_cumulative, plot_value) and every source URL. Compiled from public filings and major-outlet reporting; not a finding of wrongdoing.</span></li><li><a href="data/people.csv" download>people</a> <span class="site-muted">(624 rows, CSV)</span></li><li><a href="data/enforcement.csv" download>enforcement</a> <span class="site-muted">(62 rows, CSV)</span></li><li><a href="data/senate.csv" download>senate</a> <span class="site-muted">(100 rows, CSV)</span><br><span class="site-muted">One row per current senator from a light, identical screen since the 2012 STOCK Act: trading, flagged trades, late filings, inquiries, family ties, stock-ban stance and screen result, plus disclosed trade values as ranges (tv_low to tv_high: the sum of each trade&#x27;s band minimums and maximums; 2012–2020 from an extract of eFD filings, 2021–Oct 2026 from tracker lists; tv_partial marks incomplete lists). &#x27;No issues found&#x27; means none found in a light search.</span></li><li><a href="data/senate_items.csv" download>senate_items</a> <span class="site-muted">(58 rows, CSV)</span><br><span class="site-muted">One row per Senate screen finding (flagged trade, late filing, investigation or complaint, family business tie) with outcome, value band where known (value_low, value_high), evidence tier and sources.</span></li><li><a href="data/house.csv" download>House screen: Representatives</a> <span class="site-muted">(55 rows, CSV)</span><br><span class="site-muted">One row per Representative in the House screen: 55 current members chosen by fixed rules (most active traders of 2025, members named for late or missing trade reports or a trading inquiry, party leaders), with the same fields as the Senate screen and disclosed trade values as ranges. Tracker lists often covered only recent trades, so most value totals are minimums (tv_partial). &#x27;No issues found&#x27; means none found in a light search.</span></li><li><a href="data/house_items.csv" download>House screen: findings</a> <span class="site-muted">(70 rows, CSV)</span><br><span class="site-muted">One row per House screen finding (flagged trade, late filing, investigation or complaint, family business tie) with outcome, value band where known, evidence tier and sources.</span></li><li><a href="data/coverage.csv" download>coverage</a> <span class="site-muted">(18 rows, CSV)</span></li></ul>
+  </div>
+</footer>
+<script src="d3.min.js"></script>
+<script src="dash-runtime.js"></script>
+<script src="core.js"></script>
+<script src="pres.js"></script>
+<script src="pages.js"></script>
+<script src="data.js"></script>
+<script>
+  (function () {
+    // Theme buttons: Auto follows the system setting; Light and Dark stick for later visits where the browser allows it.
+    const root = document.documentElement;
+    const buttons = document.querySelectorAll('.site-bar [data-theme]');
+    const mark = () => buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-theme') === root.getAttribute('data-mode'))));
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      const m = b.getAttribute('data-theme');
+      root.setAttribute('data-mode', m);
+      try { if (m === 'system') localStorage.removeItem('tt-theme'); else localStorage.setItem('tt-theme', m); } catch (err) {}
+      mark();
+    }));
+    mark();
+    // Parse every dataset, then hand them to the page.
+    try {
+      const sets = Object.fromEntries(Object.entries(window.TT_DATA || {}).map(([id, text]) => [id, d3.csvParse(text)]));
+      dash._load(sets);
+    } catch (err) {
+      console.error(err);
+      dash._fail(["events", "people", "enforcement", "senate", "senate_items", "house", "house_items", "coverage"]);
+    }
+  })();
+</script>
+</body>
+</html>
