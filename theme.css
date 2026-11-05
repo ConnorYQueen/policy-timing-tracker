@@ -1,5 +1,6 @@
-/* The dashboard type's theme tokens, resolved from its own stylesheet for light and dark, so the page renders the same
-   outside Claude. Light by default; dark when the reader's system asks for it, or when data-mode="dark" is set. */
+/* Theme tokens. The colors are The 2027 Roster's tokens, under the same names and with the same light and dark values, so
+   the two sites read as one family; the page's styles keep their own names for them, mapped below. Light by default; dark
+   when the reader's system asks for it, or when data-mode="dark" is set. */
 :root {
   --cds-font-size-caption: .75rem; --cds-font-size-body: .875rem; --cds-font-size-heading: .9375rem; --cds-font-size-title: 1.375rem;
   --cds-font-weight-medium: 500;
@@ -12,30 +13,50 @@
 }
 :root, :root[data-mode="light"] {
   color-scheme: light;
-  --color-fg: #0b0b0b; --color-fg-muted: #898781; --color-panel: #fff; --color-bg: #f9f9f7; --color-border-line: rgba(11, 11, 11, .1);
-  --cds-chart-muted: #c3c2b7; --cds-chart-grid: rgba(11, 11, 11, .1); --cds-chart-reference: #898781; --cds-chart-axis: #c3c2b7;
+  --ink: #15103e; --ink-2: #443f6e; --ink-3: #5f5a86;
+  --paper: #fdfcff; --wash: #f1edfc; --rule: #ded7f5; --rule-2: #b9afe0;
+  --d: #1b3be0; --r: #e5152e; --i: #008f7e; --u: #7f818c; --u-2: #b6b8c0;
+  --g-control: #d8ccff; --g-senate: #ffd9a8; --g-governor: #a9f0d1; --g-house: #a8e6ff;
+  --means: #b5127f; --focus: #15103e;
   --color-bad: #8e2626; --color-ok: #006300; --color-warn: #734500;
-  --cds-text-secondary: #52514e; --cds-surface-popover: #fff; --cds-border: rgba(11, 11, 11, .1);
-  --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .12), 0 2px 6px rgba(0, 0, 0, .08);
+  --cds-shadow-popover: 0 8px 24px rgba(21, 16, 62, .18), 0 2px 6px rgba(21, 16, 62, .12);
 }
 :root[data-mode="dark"] {
   color-scheme: dark;
-  --color-fg: #f0efec; --color-fg-muted: #898781; --color-panel: #1a1a19; --color-bg: #0b0b0b; --color-border-line: rgba(255, 255, 255, .1);
-  --cds-chart-muted: #5f5e5a; --cds-chart-grid: rgba(255, 255, 255, .1); --cds-chart-reference: #97958d; --cds-chart-axis: #383835;
+  --ink: #f4f1ff; --ink-2: #c9c3ea; --ink-3: #a29cc7;
+  --paper: #15112c; --wash: #221c44; --rule: #342d5e; --rule-2: #544c86;
+  --d: #4f79ff; --r: #e02a48; --i: #12a893; --u: #a9abb7; --u-2: #5d5f6b;
+  --g-control: #1e1250; --g-senate: #4a1f06; --g-governor: #062f2a; --g-house: #072b45;
+  --means: #ff62c8; --focus: #f4f1ff;
   --color-bad: #ec7e7e; --color-ok: #0ca30c; --color-warn: #db9300;
-  --cds-text-secondary: #c3c2b7; --cds-surface-popover: #20201f; --cds-border: rgba(255, 255, 255, .1);
-  --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .32), 0 2px 6px rgba(0, 0, 0, .2);
+  --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .32);
 }
 @media (prefers-color-scheme: dark) {
   :root[data-mode="system"] {
     color-scheme: dark;
-    --color-fg: #f0efec; --color-fg-muted: #898781; --color-panel: #1a1a19; --color-bg: #0b0b0b; --color-border-line: rgba(255, 255, 255, .1);
-    --cds-chart-muted: #5f5e5a; --cds-chart-grid: rgba(255, 255, 255, .1); --cds-chart-reference: #97958d; --cds-chart-axis: #383835;
+    --ink: #f4f1ff; --ink-2: #c9c3ea; --ink-3: #a29cc7;
+    --paper: #15112c; --wash: #221c44; --rule: #342d5e; --rule-2: #544c86;
+    --d: #4f79ff; --r: #e02a48; --i: #12a893; --u: #a9abb7; --u-2: #5d5f6b;
+    --g-control: #1e1250; --g-senate: #4a1f06; --g-governor: #062f2a; --g-house: #072b45;
+    --means: #ff62c8; --focus: #f4f1ff;
     --color-bad: #ec7e7e; --color-ok: #0ca30c; --color-warn: #db9300;
-    --cds-text-secondary: #c3c2b7; --cds-surface-popover: #20201f; --cds-border: rgba(255, 255, 255, .1);
-    --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .32), 0 2px 6px rgba(0, 0, 0, .2);
+    --cds-shadow-popover: 0 8px 24px rgba(0, 0, 0, .5), 0 2px 6px rgba(0, 0, 0, .32);
   }
 }
+/* What the page's styles call those tokens. These follow the mode through the values above. */
+:root {
+  --color-fg: var(--ink); --color-fg-muted: var(--ink-3); --color-panel: var(--paper); --color-wash: var(--wash); --color-border-line: var(--rule);
+  --cds-chart-muted: var(--u-2); --cds-chart-grid: var(--rule); --cds-chart-reference: var(--ink-3); --cds-chart-axis: var(--rule-2);
+  --cds-text-secondary: var(--ink-2); --cds-surface-popover: var(--paper); --cds-border: var(--rule-2);
+  /* The page's ground. Like the roster's slider stops, each tab has its own (pages.js sets data-ground as tabs change). */
+  --color-bg: var(--g-control);
+}
+:root[data-ground="senate"] { --color-bg: var(--g-senate); }
+:root[data-ground="house"] { --color-bg: var(--g-house); }
+:root[data-ground="governor"] { --color-bg: var(--g-governor); }
 html { background: var(--color-bg); }
 body { margin: 0; background: var(--color-bg); color: var(--color-fg); font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); line-height: 1.45; }
+@media (prefers-reduced-motion: no-preference) {
+  html, body { transition: background-color var(--cds-dur-base) ease; }
+}
 .dash-skeleton:empty, .dash-skeleton { color: transparent; }

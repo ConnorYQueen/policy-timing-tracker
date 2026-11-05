@@ -1,4 +1,4 @@
-// Policy timing & conflicts tracker (v2): constants, formatting, marks, calculations, tooltip and drawer helpers.
+// Politicians Finances (v2): constants, formatting, marks, calculations, tooltip and drawer helpers.
 (function () {
   'use strict';
 

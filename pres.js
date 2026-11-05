@@ -529,7 +529,7 @@
     dated.forEach((e) => {
       const cx = x(T.parseDate(e.plot_date));
       svgSel.append('line').attr('class', 'tt-tickmark').attr('x1', cx).attr('x2', cx).attr('y1', 10).attr('y2', 28)
-        .style('stroke', T.isMoney(e) ? T.colorFor(e.chart_family, st.pres) : T.MUTED).style('opacity', passes(st, e, true) ? 0.9 : 0.2);
+        .style('stroke', T.isMoney(e) ? T.colorFor(e.chart_family, st.pres) : T.MUTED).style('opacity', passes(st, e, true) ? 1 : 0.2);
     });
     const ax = svgSel.append('g').attr('class', 'tt-axis').attr('transform', 'translate(0,36)')
       .call(d3.axisBottom(x).ticks(Math.max(2, Math.floor((W - m.l - m.r) / 110))).tickSizeOuter(0));
@@ -604,9 +604,8 @@
     if (events.some((e) => T.isMoney(e) && T.isSpread(e))) {
       const sk = T.h('span', 'tt-sw-line');
       sk.style.background = 'var(--color-fg-muted)';
-      sk.style.opacity = '.45';
       sk.style.width = '18px';
-      sk.style.height = '3px';
+      sk.style.height = '2px';
       item(extra, sk, 'Bar along the dates: an amount reported for a whole period, such as a year');
     }
     T.ACTION_SHAPES.filter((sh) => events.some((e) => !T.isMoney(e) && T.shapeFor(e.category) === sh)).forEach((sh) => item(extra, T.keySvg(sh), sh.label));
