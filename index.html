@@ -66,21 +66,22 @@
   --tt-c-trump: var(--r); --tt-c-trump1: #8a0f1e; --tt-c-biden: var(--d); --tt-c-obama: #17217f; /* Obama: 60% --ink, 40% --d */
   --tt-c-trades: var(--u);
   --tt-c-R: var(--r); --tt-c-D: var(--d); --tt-c-I: var(--i);
+  /* Background marks: --u-2 is under 3:1 on the panel, so its fills take an edge that clears it, and rings and thin lines take the edge's color. */
   --tt-c-muted: var(--cds-chart-muted);
   --tt-c-muted-line: var(--u); --tt-act-edge: var(--u);
   --tt-accent: var(--means);
 }
 @media screen {
   :where([data-mode=dark] .cds-root:not([data-mode=light]):not([data-mode=system]), .cds-root[data-mode=dark], .cds-dark-scope[data-mode=dark]) .tt-wrap {
-    --tt-c-trump1: #ca0e14; --tt-c-obama: #3c65b5;
-    --tt-c-muted: #666874;
+    --tt-c-trump1: #ca0e14; --tt-c-obama: #3e67b7;
+    --tt-c-muted: #666874; /* --u-2 (#5d5f6b), lifted just enough to reach 3:1 on the panel and on the In-office band */
     --tt-c-muted-line: #666874; --tt-act-edge: var(--color-panel);
   }
 }
 @media screen and (prefers-color-scheme: dark) {
   :where([data-mode=system] .cds-root:not([data-mode=light]):not([data-mode=dark]), .cds-root[data-mode=system], .cds-root:not([data-mode]):not([data-mode] *)) .tt-wrap {
-    --tt-c-trump1: #ca0e14; --tt-c-obama: #3c65b5;
-    --tt-c-muted: #666874;
+    --tt-c-trump1: #ca0e14; --tt-c-obama: #3e67b7;
+    --tt-c-muted: #666874; /* --u-2 (#5d5f6b), lifted just enough to reach 3:1 on the panel and on the In-office band */
     --tt-c-muted-line: #666874; --tt-act-edge: var(--color-panel);
   }
 }
@@ -282,7 +283,8 @@
 .tt-drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cds-gap-md); margin-bottom: var(--cds-gap-sm); }
 .tt-drawer-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
 .tt-drawer-badges { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; }
-.tt-drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-lg); }
+.tt-drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-lg); overflow-wrap: anywhere; }
+.tt-drawer-badges .tt-badge { white-space: normal; }
 .tt-field { margin: 0 0 var(--cds-gap-sm); font-size: var(--cds-font-size-body); max-width: 80ch; }
 .tt-field-label { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .tt-field-note { border-left: 2px solid var(--color-fg-muted); padding-left: var(--cds-pad-sm); }
@@ -587,6 +589,7 @@
 .tt-sum-group-title { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0 0 2px; }
 .tt-sum-group-note { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); max-width: 84ch; }
 .tt-tv-min { opacity: 1; }
+/* The lighter part: a tint, with an edge in the party's color so its end reads at 3:1 on the panel. */
 .tt-tv-max { fill-opacity: .32; stroke-width: 1; }
 /* The key above each trade-value chart: party colors, then the two shades said in words beside a sample bar per party. */
 .tt-legend-top { margin: 0 0 var(--cds-gap-md); }
@@ -604,6 +607,7 @@
 .tt-lane-line { stroke: var(--cds-chart-grid); stroke-width: 1; }
 .tt-bubble { fill-opacity: .8; stroke-width: 1.5; }
 .tt-bubble-hollow { fill-opacity: 1; }
+/* Background dots keep a pale tint of --u-2 inside the ring, which keeps them apart from hollow trade dots. */
 .tt-bubble-hollow[style*="--tt-c-muted"] { fill: color-mix(in srgb, var(--u-2) 28%, var(--color-panel)) !important; }
 .tt-size-key { gap: 2px; }
 .tt-size-dot { fill: none; stroke: var(--color-fg-muted); stroke-width: 1.5; }
