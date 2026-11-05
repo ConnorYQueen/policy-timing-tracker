@@ -3,19 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Policy timing &amp; conflicts tracker</title>
+<title>Politicians Finances</title>
 <meta name="description" content="Money that reached presidents’ families and connected firms, trades placed just before government announcements, and what investigators did, for Trump, Biden and Obama, plus a check of every senator and 55 House members. Every item links to its sources.">
-<meta property="og:title" content="Policy timing &amp; conflicts tracker">
+<meta property="og:title" content="Politicians Finances">
 <meta property="og:description" content="Sourced, dated records with the same rules for every president and member of Congress. Being listed is not proof of wrongdoing.">
 <script>
   // The reader's theme choice, if they made one on an earlier visit; otherwise the system setting decides.
   try { const m = localStorage.getItem('tt-theme'); if (m === 'light' || m === 'dark') document.documentElement.setAttribute('data-mode', m); } catch (err) {}
+  // A link to the Senate, House or Methods tab opens on that tab's ground, with no flash of the default one (pages.js keeps it current).
+  try { const g = { '#senate': 'senate', '#house': 'house', '#methods': 'governor' }[location.hash]; if (g) document.documentElement.setAttribute('data-ground', g); } catch (err) {}
 </script>
 <link rel="stylesheet" href="theme.css">
 <style>
   #dash-root { padding: clamp(16px, 3vw, 32px) clamp(16px, 4vw, 40px) 0; }
   .site-bar { max-width: 1240px; margin: 0 auto; padding: 10px clamp(16px, 4vw, 40px) 0; display: flex; justify-content: flex-end; gap: 6px; align-items: center;
-    font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
+    font-size: var(--cds-font-size-caption); color: var(--cds-text-secondary); }
   .site-bar button { font: inherit; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); border-radius: var(--cds-radius); min-height: 1.75rem; padding: 0 10px; cursor: pointer; }
   .site-bar button[aria-pressed="true"] { border-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
   .site-bar { flex-wrap: wrap; }
@@ -31,6 +33,7 @@
   .site-foot a { color: var(--color-fg); }
   .site-muted { color: var(--color-fg-muted); font-size: var(--cds-font-size-caption); }
   .site-noscript { max-width: 60ch; margin: 2rem auto; padding: 0 16px; }
+  :where(a, button, summary, input, [tabindex]):focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
   @media (pointer: coarse) { .site-bar button { min-height: 44px; padding: 0 14px; } }
 </style>
 </head>
@@ -47,7 +50,7 @@
 <noscript><p class="site-noscript">This dashboard draws its charts with JavaScript. Turn JavaScript on to see it, or download the data files listed at the bottom of the page.</p></noscript>
 <div id="dash-root" data-appifact-content>
 <style>
-/* Policy timing & conflicts tracker, v2. Only the page's own classes are styled; every color is a theme token or one of the
+/* Politicians Finances, v2. Only the page's own classes are styled; every color is a theme token or one of the
    party colors below, which are set for light and dark. */
 .tt-wrap { max-width: 1240px; margin-inline: auto; font-family: var(--font-anthropic-sans); color: var(--color-fg); container-type: inline-size; }
 .tt-wrap [hidden] { display: none !important; }
@@ -55,31 +58,31 @@
 /* ---------- Party colors ----------
    Each president has a color for money to the family and connected firms (-c-<page>): two reds for Trump's two terms,
    two blues for Biden and Obama. Trades just before government news, mostly by others, take one neutral gray on every
-   page (-c-trades), and background kinds a light gray. Senate and House members take their party's color. Steps come from the design system's color ramps, picked per theme and checked for
-   separation under red-green color blindness; every chart also labels what each color means. */
+   page (-c-trades), and background kinds a light gray. Senate and House members take their party's color. These are The 2027 Roster's tokens (theme.css); the first-term red and
+   Obama's navy are set here for each theme, at least 3:1 on the panel and checked for separation under red-green color blindness; every chart also labels what each color means. */
 .tt-wrap {
   --tt-dur: calc(var(--cds-dur-slow) * 2.6);
   --tt-dur-mark: calc(var(--cds-dur-slow) * 1.3);
-  --tt-c-trump: #d03b3b; --tt-c-trump1: #791e1e; --tt-c-biden: #3987e5; --tt-c-obama: #104281;
-  --tt-c-trades: #7b7974;
-  --tt-c-R: #d03b3b; --tt-c-D: #3987e5; --tt-c-I: #52514e;
+  --tt-c-trump: var(--r); --tt-c-trump1: #8a0f1e; --tt-c-biden: var(--d); --tt-c-obama: #17217f; /* Obama: 60% --ink, 40% --d */
+  --tt-c-trades: var(--u);
+  --tt-c-R: var(--r); --tt-c-D: var(--d); --tt-c-I: var(--i);
+  /* Background marks: --u-2 is under 3:1 on the panel, so its fills take an edge that clears it, and rings and thin lines take the edge's color. */
   --tt-c-muted: var(--cds-chart-muted);
-  --tt-accent: var(--color-fg-muted);
+  --tt-c-muted-line: var(--u); --tt-act-edge: var(--u);
+  --tt-accent: var(--means);
 }
 @media screen {
   :where([data-mode=dark] .cds-root:not([data-mode=light]):not([data-mode=system]), .cds-root[data-mode=dark], .cds-dark-scope[data-mode=dark]) .tt-wrap {
-    --tt-c-trump: #ec7e7e; --tt-c-trump1: #b93535; --tt-c-biden: #6da7ec; --tt-c-obama: #256abf;
-    --tt-c-trades: #c3c2b7;
-    --tt-c-R: #ec7e7e; --tt-c-D: #6da7ec; --tt-c-I: #6d6b67;
-    --tt-c-muted: #6d6b67;
+    --tt-c-trump1: #ca0e14; --tt-c-obama: #3e67b7;
+    --tt-c-muted: #666874; /* --u-2 (#5d5f6b), lifted just enough to reach 3:1 on the panel and on the In-office band */
+    --tt-c-muted-line: #666874; --tt-act-edge: var(--color-panel);
   }
 }
 @media screen and (prefers-color-scheme: dark) {
   :where([data-mode=system] .cds-root:not([data-mode=light]):not([data-mode=dark]), .cds-root[data-mode=system], .cds-root:not([data-mode]):not([data-mode] *)) .tt-wrap {
-    --tt-c-trump: #ec7e7e; --tt-c-trump1: #b93535; --tt-c-biden: #6da7ec; --tt-c-obama: #256abf;
-    --tt-c-trades: #c3c2b7;
-    --tt-c-R: #ec7e7e; --tt-c-D: #6da7ec; --tt-c-I: #6d6b67;
-    --tt-c-muted: #6d6b67;
+    --tt-c-trump1: #ca0e14; --tt-c-obama: #3e67b7;
+    --tt-c-muted: #666874; /* --u-2 (#5d5f6b), lifted just enough to reach 3:1 on the panel and on the In-office band */
+    --tt-c-muted-line: #666874; --tt-act-edge: var(--color-panel);
   }
 }
 /* Each president's page wears its color: the band over the page header, section rules, the summary button. */
@@ -99,7 +102,7 @@
 .tt-party-D .tt-party-dot { background: var(--tt-c-D); }
 .tt-party-I .tt-party-dot { background: var(--tt-c-I); }
 .tt-party-T .tt-party-dot { background: var(--tt-c-trades); }
-.tt-party-M .tt-party-dot { background: var(--tt-c-muted); }
+.tt-party-M .tt-party-dot { background: var(--tt-c-muted); box-shadow: inset 0 0 0 1px var(--tt-c-muted-line); }
 .tt-row[data-party] .tt-td:first-child { box-shadow: inset 3px 0 0 var(--tt-row-party, transparent); }
 .tt-row[data-party="R"] { --tt-row-party: var(--tt-c-R); }
 .tt-row[data-party="D"] { --tt-row-party: var(--tt-c-D); }
@@ -109,9 +112,9 @@
 .tt-head { margin-bottom: var(--cds-gap-md); }
 .tt-title { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.15; margin: 0 0 var(--cds-gap-xs); }
 .tt-sub { font-size: var(--cds-font-size-body); color: var(--color-fg); margin: 0; max-width: 78ch; }
-.tt-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--color-border-line); }
-.tt-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 2px solid transparent; color: var(--color-fg-muted); padding: var(--cds-pad-sm); min-height: 2.25rem; cursor: pointer; }
-.tt-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+.tt-tabs { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); border-bottom: 1px solid var(--rule-2); }
+.tt-tab { font: inherit; font-size: var(--cds-font-size-body); background: none; border: 0; border-bottom: 2px solid transparent; color: var(--cds-text-secondary); padding: var(--cds-pad-sm); min-height: 2.25rem; cursor: pointer; }
+.tt-tab[aria-selected="true"] { color: var(--color-fg); border-bottom-color: var(--tt-accent); font-weight: var(--cds-font-weight-medium); }
 /* A president's tab carries that president's color: a dot always, the underline when open. */
 .tt-tab { display: inline-flex; align-items: center; gap: 6px; transition: color var(--cds-dur-base), border-color var(--cds-dur-base); }
 .tt-tab-dot { display: inline-block; width: .5rem; height: .5rem; border-radius: 50%; background: var(--tt-tab-c, transparent); }
@@ -120,11 +123,11 @@
 .tt-tab[data-page="obama"] { --tt-tab-c: var(--tt-c-obama); }
 .tt-tab[data-page="trump"][aria-selected="true"], .tt-tab[data-page="biden"][aria-selected="true"], .tt-tab[data-page="obama"][aria-selected="true"] { border-bottom-color: var(--tt-tab-c); border-bottom-width: 3px; }
 .tt-tab:hover { color: var(--color-fg); }
-.tt-tab:focus-visible, .tt-chip:focus-visible, .tt-btn:focus-visible, .tt-th-btn:focus-visible, .tt-linkbtn:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.tt-tab:focus-visible, .tt-chip:focus-visible, .tt-btn:focus-visible, .tt-th-btn:focus-visible, .tt-linkbtn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
 /* ---------- Page header: takeaway and callouts ---------- */
 .tt-page-head { margin-bottom: var(--cds-gap-md); }
-.tt-span-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-xs); }
+.tt-span-note { color: var(--cds-text-secondary); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-xs); }
 .tt-takeaway { font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-md); max-width: 84ch; min-height: 1.4em; }
 .tt-callouts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: var(--cds-gap-md); }
 .tt-callout { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
@@ -136,9 +139,9 @@
 
 /* ---------- Per-kind totals tiles ---------- */
 .tt-section-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: var(--cds-gap-lg) 0 var(--cds-gap-xs); }
-.tt-section-note { color: var(--color-fg-muted); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-sm); max-width: 84ch; }
+.tt-section-note { color: var(--cds-text-secondary); font-size: var(--cds-font-size-body); margin: 0 0 var(--cds-gap-sm); max-width: 84ch; }
 .tt-kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: var(--cds-gap-md); margin-bottom: var(--cds-gap-md); }
-.tt-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-top: 3px solid var(--cds-chart-muted); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
+.tt-kpi { background: var(--color-panel); border: 1px solid var(--color-border-line); border-top: 3px solid var(--tt-c-muted); border-radius: var(--cds-radius); padding: var(--cds-pad-md) var(--cds-pad-lg); display: flex; flex-direction: column; gap: var(--cds-gap-xs); min-width: 0; }
 .tt-kpi-label { display: flex; align-items: center; gap: var(--cds-gap-xs); font-size: var(--cds-font-size-caption); font-weight: var(--cds-font-weight-medium); color: var(--color-fg); }
 .tt-kpi-val { font-family: var(--font-anthropic-serif); font-weight: 400; font-size: var(--cds-font-size-title); line-height: 1.05; min-height: 1.05em; }
 .tt-kpi-none { font-family: var(--font-anthropic-sans); font-size: var(--cds-font-size-body); color: var(--color-fg-muted); }
@@ -149,8 +152,10 @@
 .tt-linkbtn:hover { text-decoration-color: var(--color-fg); }
 
 /* ---------- Swatches, badges, legends ---------- */
-.tt-sw { display: inline-block; flex: none; width: .625rem; height: .625rem; border-radius: 50%; background: var(--cds-chart-muted); }
-.tt-sw-line { display: inline-block; flex: none; width: .75rem; height: 2px; border-radius: 1px; background: var(--cds-chart-muted); }
+.tt-sw { display: inline-block; flex: none; width: .625rem; height: .625rem; border-radius: 50%; background: var(--tt-c-muted); }
+.tt-sw[style*="--tt-c-muted"] { box-shadow: inset 0 0 0 1px var(--tt-c-muted-line); }
+.tt-sw-line { display: inline-block; flex: none; width: .75rem; height: 2px; border-radius: 1px; background: var(--tt-c-muted); }
+.tt-sw-line, .tt-sw[style*="box-shadow"], .tt-bubble, .tt-span, .tt-tickmark { --tt-c-muted: var(--tt-c-muted-line); }
 .tt-badge { display: inline-flex; align-items: center; font-size: var(--cds-font-size-caption); line-height: 1.25; padding: 0 var(--cds-pad-xs); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); color: var(--color-fg); white-space: nowrap; font-weight: var(--cds-font-weight-medium); }
 .tt-badge-documented { background: var(--color-fg); border-color: var(--color-fg); color: var(--color-panel); }
 .tt-badge-reported { border-color: var(--color-fg-muted); }
@@ -172,12 +177,12 @@
 .tt-chip[aria-pressed="true"] { border-color: var(--color-fg); }
 .tt-chip[aria-pressed="false"] { color: var(--color-fg-muted); }
 .tt-chip[aria-pressed="false"] .tt-sw, .tt-chip[aria-pressed="false"] .tt-key-svg { opacity: .3; }
-.tt-btn:hover, .tt-chip:hover { background: var(--color-bg); }
+.tt-btn:hover, .tt-chip:hover { background: var(--color-wash); }
 .tt-btn-icon { min-width: 1.75rem; justify-content: center; padding: 0; }
-.tt-picked { border-color: var(--color-fg); background: var(--color-bg); }
+.tt-picked { border-color: var(--color-fg); background: var(--color-wash); }
 .tt-range-label { font-size: var(--cds-font-size-caption); color: var(--color-fg); }
-.tt-date { font: inherit; font-size: var(--cds-font-size-caption); min-height: 1.75rem; padding: 0 var(--cds-pad-xs); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); }
-.tt-date:focus-visible, .tt-search:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 1px; }
+.tt-date { font: inherit; font-size: var(--cds-font-size-caption); min-height: 1.75rem; padding: 0 var(--cds-pad-xs); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-wash); color: var(--color-fg); }
+.tt-date:focus-visible, .tt-search:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
 .tt-gap-top { margin-top: var(--cds-gap-md); }
 .tt-count { font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 
@@ -218,9 +223,10 @@
 .tt-stem { stroke-width: 1.5; opacity: .6; }
 .tt-whisker { stroke-width: 4; opacity: .25; stroke-linecap: round; }
 .tt-dot { stroke-width: 2; }
-.tt-act { fill: var(--cds-chart-muted); stroke: var(--color-panel); stroke-width: 1; }
+.tt-act { fill: var(--tt-c-muted); stroke: var(--tt-act-edge); stroke-width: 1; }
+.tt-act[style*="fill"] { stroke: var(--color-panel); }
 .tt-hit { fill: transparent; stroke: none; cursor: pointer; }
-.tt-hit:focus-visible { outline: none; stroke: var(--color-fg); stroke-width: 1.5; }
+.tt-hit:focus-visible { outline: none; stroke: var(--focus); stroke-width: 1.5; }
 .tt-ev.tt-hot .tt-dot, .tt-ev.tt-hot .tt-act { stroke: var(--color-fg); stroke-width: 2.5; }
 .tt-has-hot .tt-ev { opacity: .28; }
 .tt-has-hot .tt-ev.tt-hot { opacity: 1; }
@@ -236,7 +242,7 @@
 .tt-run-key-svg { flex: none; overflow: visible; }
 .tt-axis-title { font-size: var(--cds-font-size-caption); fill: var(--color-fg-muted); }
 .tt-anno-sub { fill: var(--color-fg-muted); }
-.tt-span { stroke-width: 3; stroke-linecap: round; opacity: .45; }
+.tt-span { stroke-width: 1.5; stroke-linecap: round; }
 .tt-end-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); font-weight: var(--cds-font-weight-medium); font-variant-numeric: tabular-nums; }
 .tt-ink-line { fill: none; stroke: var(--color-fg); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .tt-ink-dot { fill: var(--color-fg); stroke: var(--color-panel); stroke-width: 2; }
@@ -257,7 +263,7 @@
 .tt-net-person { fill: var(--color-panel); stroke: var(--color-fg); stroke-width: 1.5; cursor: pointer; }
 .tt-net-event { stroke: var(--color-panel); stroke-width: 1.5; cursor: pointer; }
 .tt-net-label { font-size: var(--cds-font-size-caption); fill: var(--color-fg); paint-order: stroke; stroke: var(--color-panel); stroke-width: 3px; stroke-linejoin: round; pointer-events: none; }
-.tt-net-sel .tt-net-person { stroke-width: 3; fill: var(--color-bg); }
+.tt-net-sel .tt-net-person { stroke-width: 3; fill: var(--color-wash); }
 .tt-net-g.tt-focus .tt-net-node, .tt-net-g.tt-focus .tt-net-edge { opacity: .14; }
 .tt-net-g.tt-focus .tt-net-node.tt-on, .tt-net-g.tt-focus .tt-net-edge.tt-on { opacity: 1; }
 .tt-net-node.tt-dim { opacity: .2; }
@@ -277,7 +283,8 @@
 .tt-drawer-head { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--cds-gap-md); margin-bottom: var(--cds-gap-sm); }
 .tt-drawer-title { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 var(--cds-gap-xs); }
 .tt-drawer-badges { display: flex; flex-wrap: wrap; gap: var(--cds-gap-xs); align-items: center; }
-.tt-drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-lg); }
+.tt-drawer-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: var(--cds-gap-sm) var(--cds-gap-lg); overflow-wrap: anywhere; }
+.tt-drawer-badges .tt-badge { white-space: normal; }
 .tt-field { margin: 0 0 var(--cds-gap-sm); font-size: var(--cds-font-size-body); max-width: 80ch; }
 .tt-field-label { display: block; font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
 .tt-field-note { border-left: 2px solid var(--color-fg-muted); padding-left: var(--cds-pad-sm); }
@@ -291,7 +298,8 @@
 
 /* Tables */
 .tt-table-tools { display: flex; flex-wrap: wrap; gap: var(--cds-gap-sm); align-items: center; margin-bottom: var(--cds-gap-sm); }
-.tt-search { font: inherit; font-size: var(--cds-font-size-body); width: 100%; max-width: 28rem; min-height: 2rem; padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-bg); color: var(--color-fg); }
+.tt-search { font: inherit; font-size: var(--cds-font-size-body); width: 100%; max-width: 28rem; min-height: 2rem; padding: var(--cds-pad-xs) var(--cds-pad-sm); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); background: var(--color-wash); color: var(--color-fg); }
+.tt-search::placeholder { color: var(--color-fg-muted); opacity: 1; }
 .tt-table-wrap { max-height: 34rem; overflow: auto; }
 .tt-table { width: 100%; border-collapse: collapse; font-size: var(--cds-font-size-caption); font-variant-numeric: tabular-nums; }
 .tt-th { position: sticky; top: 0; z-index: 1; background: var(--color-panel); text-align: left; font-weight: var(--cds-font-weight-medium); border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); vertical-align: bottom; white-space: nowrap; }
@@ -301,8 +309,8 @@
 .tt-th[aria-sort="descending"] .tt-th-btn::after { content: " \2193"; }
 .tt-td { border-bottom: 1px solid var(--color-border-line); padding: var(--cds-pad-xs) var(--cds-pad-sm); vertical-align: top; }
 .tt-row { cursor: pointer; }
-.tt-row:hover .tt-td, .tt-row.tt-hot .tt-td { background: var(--color-bg); }
-.tt-row:focus-visible { outline: 2px solid var(--color-fg); outline-offset: -2px; }
+.tt-row:hover .tt-td, .tt-row.tt-hot .tt-td { background: var(--color-wash); }
+.tt-row:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
 .tt-row-open .tt-td { box-shadow: inset 0 -1px 0 var(--color-fg); }
 .tt-num { text-align: right; white-space: nowrap; }
 .tt-nowrap { white-space: nowrap; }
@@ -402,7 +410,7 @@
 .tt-filter-toggle::after { content: "\25BE"; flex: none; margin-left: auto; color: var(--color-fg-muted); }
 .tt-filters.tt-open .tt-filter-toggle::after { content: "\25B4"; }
 .tt-filters.tt-active .tt-filter-state { color: var(--color-fg); }
-.tt-filter-toggle:focus-visible { outline: 2px solid var(--color-fg); outline-offset: 2px; }
+.tt-filter-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .tt-mult-note { font-size: var(--cds-font-size-caption); color: var(--color-fg); margin: var(--cds-gap-xs) 0 0; line-height: 1.5; }
 
 @container (max-width: 640px) {
@@ -443,7 +451,7 @@
   .tt-cards .tt-wide-col { min-width: 0; }
   .tt-cards .tt-num { text-align: left; }
   .tt-cards .tt-badge { white-space: normal; }
-  .tt-cards tr.tt-row:hover, .tt-cards tr.tt-row.tt-hot { background: var(--color-bg); }
+  .tt-cards tr.tt-row:hover, .tt-cards tr.tt-row.tt-hot { background: var(--color-wash); }
   .tt-cards tr.tt-row:hover .tt-td, .tt-cards tr.tt-row.tt-hot .tt-td { background: none; }
   .tt-cards tr.tt-row-open { box-shadow: inset 3px 0 0 var(--color-fg); }
   .tt-cards tr.tt-row-open .tt-td { box-shadow: none; }
@@ -506,6 +514,7 @@
     .tt-page .tt-card, .tt-page .tt-kpis { animation: tt-card-in linear both; animation-timeline: view(); animation-range: entry 0% entry 35%; }
   }
   .tt-tab, .tt-chip, .tt-btn, .tt-row .tt-td { transition: background-color var(--cds-dur-base), border-color var(--cds-dur-base), color var(--cds-dur-base); }
+  .tt-tabbar { transition: background-color var(--cds-dur-base); }
   .tt-guide[open] .tt-guide-grid { animation: tt-rise-in var(--cds-dur-slow) var(--cds-ease-out) both; }
   @keyframes tt-pop { from { transform: scale(0); } to { transform: scale(1); } }
   @keyframes tt-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
@@ -580,12 +589,13 @@
 .tt-sum-group-title { font-size: var(--cds-font-size-body); font-weight: var(--cds-font-weight-medium); margin: 0 0 2px; }
 .tt-sum-group-note { font-size: var(--cds-font-size-body); color: var(--color-fg-muted); margin: 0 0 var(--cds-gap-md); max-width: 84ch; }
 .tt-tv-min { opacity: 1; }
-.tt-tv-max { opacity: .32; }
+/* The lighter part: a tint, with an edge in the party's color so its end reads at 3:1 on the panel. */
+.tt-tv-max { fill-opacity: .32; stroke-width: 1; }
 /* The key above each trade-value chart: party colors, then the two shades said in words beside a sample bar per party. */
 .tt-legend-top { margin: 0 0 var(--cds-gap-md); }
 .tt-tv-explain { flex-basis: 100%; display: flex; align-items: flex-start; gap: var(--cds-gap-sm); margin: 2px 0 0; font-size: var(--cds-font-size-caption); color: var(--color-fg); line-height: 1.5; max-width: 92ch; }
 .tt-tv-samples { display: inline-flex; flex-direction: column; gap: 4px; flex: none; padding-top: 3px; }
-.tt-tv-sample { position: relative; display: block; width: 3rem; height: .625rem; border-radius: 4px; overflow: hidden; }
+.tt-tv-sample { position: relative; display: block; box-sizing: border-box; width: 3rem; height: .625rem; border: 1px solid var(--tt-sample-c); border-radius: 4px; overflow: hidden; }
 .tt-tv-sample::before { content: ""; position: absolute; inset: 0; background: var(--tt-sample-c); opacity: .32; }
 .tt-tv-sample::after { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 40%; border-radius: 4px; background: var(--tt-sample-c); }
 .tt-tv-sample-R { --tt-sample-c: var(--tt-c-R); }
@@ -597,19 +607,21 @@
 .tt-lane-line { stroke: var(--cds-chart-grid); stroke-width: 1; }
 .tt-bubble { fill-opacity: .8; stroke-width: 1.5; }
 .tt-bubble-hollow { fill-opacity: 1; }
+/* Background dots keep a pale tint of --u-2 inside the ring, which keeps them apart from hollow trade dots. */
+.tt-bubble-hollow[style*="--tt-c-muted"] { fill: color-mix(in srgb, var(--u-2) 28%, var(--color-panel)) !important; }
 .tt-size-key { gap: 2px; }
 .tt-size-dot { fill: none; stroke: var(--color-fg-muted); stroke-width: 1.5; }
 
 </style>
 <div class="tt-wrap">
   <header class="tt-head" id="top">
-    <h1 class="tt-title">Policy timing &amp; conflicts tracker</h1>
+    <h1 class="tt-title">Politicians Finances</h1>
     <p class="tt-sub">Money that reached presidents’ families and connected firms, trades placed just before government announcements, and what investigators did about it, for Trump, Biden and Obama, plus the same check of every senator and 55 House members. Every item links to its sources. Being listed here is not proof of wrongdoing.</p>
     <details class="tt-guide" id="guide" open>
       <summary class="tt-guide-sum">How to read this dashboard</summary>
       <div class="tt-guide-grid">
         <div class="tt-guide-item"><h2 class="tt-guide-h">Start with Summary</h2><p>Three charts compare the presidents, the senators and the House members. Each president’s tab then shows everything found for that term, ending in a Full Documented Summary.</p></div>
-        <div class="tt-guide-item"><h2 class="tt-guide-h">Colors</h2><p><span class="tt-party tt-party-R"><span class="tt-party-dot" aria-hidden="true"></span>Red</span> is Trump (a darker red for his first term) and <span class="tt-party tt-party-D"><span class="tt-party-dot" aria-hidden="true"></span>blue</span> is Biden and Obama (navy for Obama): it marks money that reached the family or connected firms. <span class="tt-party tt-party-T"><span class="tt-party-dot" aria-hidden="true"></span>Gray</span> marks trades placed just before government news, mostly by others; <span class="tt-party tt-party-M"><span class="tt-party-dot" aria-hidden="true"></span>light gray</span> is background, never added up. On the Senate and House pages red is Republican, blue Democrat and dark gray independent; in their trade-value bars the darker part is the lowest possible total and the lighter part runs on to the highest.</p></div>
+        <div class="tt-guide-item"><h2 class="tt-guide-h">Colors</h2><p><span class="tt-party tt-party-R"><span class="tt-party-dot" aria-hidden="true"></span>Red</span> is Trump (a darker red for his first term) and <span class="tt-party tt-party-D"><span class="tt-party-dot" aria-hidden="true"></span>blue</span> is Biden and Obama (navy for Obama): it marks money that reached the family or connected firms. <span class="tt-party tt-party-T"><span class="tt-party-dot" aria-hidden="true"></span>Gray</span> marks trades placed just before government news, mostly by others; <span class="tt-party tt-party-M"><span class="tt-party-dot" aria-hidden="true"></span>light gray</span> is background, never added up. On the Senate and House pages red is Republican, blue Democrat and teal independent; in their trade-value bars the darker part is the lowest possible total and the lighter part runs on to the highest.</p></div>
         <div class="tt-guide-item"><h2 class="tt-guide-h">How sure is each item?</h2><p><span class="tt-badge tt-badge-documented">Documented</span> in official records. <span class="tt-badge tt-badge-reported">Reported</span> by major news outlets, not proven in court. <span class="tt-badge tt-badge-alleged">Alleged</span> by lawmakers or watchdogs, not confirmed.</p></div>
         <div class="tt-guide-item"><h2 class="tt-guide-h">Click anything</h2><p>Every dot, bar and row opens its record: what happened, who is named and why, what investigators did, and links to every source.</p></div>
       </div>
@@ -1154,7 +1166,7 @@
   </div>
   <div class="tt-card" id="senate-summary-card">
     <h3 class="tt-card-title">What the check found, by party</h3>
-    <p class="tt-card-note">How many senators got each result, out of each party’s seats: red for Republicans, blue for Democrats, gray for independents. All bars share one scale. Click a bar to list those senators below.</p>
+    <p class="tt-card-note">How many senators got each result, out of each party’s seats: red for Republicans, blue for Democrats, teal for independents. All bars share one scale. Click a bar to list those senators below.</p>
     <div class="tt-chart tt-senate-chart dash-skeleton" id="senate-chart" data-source="senate_summary"></div>
   </div>
   <div class="tt-card" id="senate-values-card">
@@ -1203,7 +1215,7 @@
   </div>
   <div class="tt-card" id="house-summary-card">
     <h3 class="tt-card-title">What the check found, by party</h3>
-    <p class="tt-card-note">How many Representatives got each result, out of each party’s members checked: red for Republicans, blue for Democrats, gray for independents. All bars share one scale. Click a bar to list those Representatives below.</p>
+    <p class="tt-card-note">How many Representatives got each result, out of each party’s members checked: red for Republicans, blue for Democrats, teal for independents. All bars share one scale. Click a bar to list those Representatives below.</p>
     <div class="tt-chart tt-senate-chart dash-skeleton" id="house-chart" data-source="house_summary"></div>
   </div>
   <div class="tt-card" id="house-values-card">
@@ -1232,7 +1244,7 @@
     <p class="tt-para"><span class="tt-lead-in">Amounts for a period.</span> Some amounts cover a period rather than a day, like a year’s income from a tax return or a token sale that stayed open for weeks. On the timeline they get a bar along the dates they cover. In the running totals they are spread evenly across the period and drawn dashed, because the exact dates aren’t known.</p>
     <p class="tt-para"><span class="tt-lead-in">Comparing presidents.</span> Terms differ in length. Insider-trading cases that are charged publish profits; anonymous trades usually don’t, so reported profits are a floor. Research also went deeper in some areas than others; the table below lists what each search did not reach. Something not searched is a gap, not proof that nothing happened.</p>
     <p class="tt-para"><span class="tt-lead-in">Checking any number.</span> Each event’s record lists every source and how to check it yourself: exchange data, court dockets, disclosure filings, contract records. On Claude, the Sources panel shows where each number on the page comes from, with its rows to download and each calculation’s formula.</p>
-    <p class="tt-para"><span class="tt-lead-in">Colors.</span> Each president has a color: red for Trump (a brighter red for his second term, a darker red for his first) and blue for Biden and Obama (a lighter blue for Biden, navy for Obama). On each president’s page that color marks money to the family and connected firms; trades placed just before government news, mostly by others, are gray on every page, and light gray marks background that is never added up. On the Senate and House pages, red is Republican, blue is Democrat and gray is independent. In the bars of trade values, the darker part of a bar is the lowest the total could be and the lighter part runs on to the highest, because members report each trade as a range. Color is never the only cue: every chart also has labels, a key or a list.</p>
+    <p class="tt-para"><span class="tt-lead-in">Colors.</span> Each president has a color: red for Trump (a brighter red for his second term, a darker red for his first) and blue for Biden and Obama (a lighter blue for Biden, navy for Obama). On each president’s page that color marks money to the family and connected firms; trades placed just before government news, mostly by others, are gray on every page, and light gray marks background that is never added up. On the Senate and House pages, red is Republican, blue is Democrat and teal is independent. In the bars of trade values, the darker part of a bar is the lowest the total could be and the lighter part runs on to the highest, because members report each trade as a range. Color is never the only cue: every chart also has labels, a key or a list.</p>
     <div class="tt-color-key" id="methods-kinds" aria-label="Colors on each page"></div>
   </div>
   <div class="tt-card" id="coverage-card">

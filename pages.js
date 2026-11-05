@@ -9,6 +9,8 @@
   const bar = document.querySelector('.tt-tabs');
   const barBox = bar ? bar.parentElement : null;
   let current = null;
+  // Each tab has its own ground, as the roster's slider stops do; every other tab keeps the default one (see theme.css).
+  const GROUNDS = { senate: 'senate', house: 'house', methods: 'governor' };
 
   // On a phone the tabs are one row that scrolls sideways and stays at the top: a fade marks an end with more tabs,
   // the open tab is kept in view, and the bar's height is shared so jumps land below it.
@@ -30,6 +32,7 @@
   function show(id, push) {
     const target = pages.find((p) => p.id === id) || pages[0];
     pages.forEach((p) => (p.hidden = p !== target));
+    document.documentElement.setAttribute('data-ground', GROUNDS[target.id] || 'control');
     document.querySelectorAll('.tt-term-switch [data-goto]').forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-goto') === target.id)));
     tabs.forEach((b) => {
       const on = b.getAttribute('data-page') === target.id || (b.getAttribute('data-also') || '').split(' ').includes(target.id);
@@ -671,7 +674,7 @@
       const hi = Number(s.tv_high);
       const pc = T.partyColor(s.party);
       const gg = g.append('g').attr('class', play ? 'tt-grow-x' : '');
-      const pale = gg.append('rect').attr('class', 'tt-tv-max').attr('x', x(0)).attr('y', y0 - 6).attr('width', Math.max(4, x(hi) - x(0))).attr('height', 12).attr('rx', 4).style('fill', pc);
+      const pale = gg.append('rect').attr('class', 'tt-tv-max').attr('x', x(0)).attr('y', y0 - 6).attr('width', Math.max(4, x(hi) - x(0))).attr('height', 12).attr('rx', 4).style('fill', pc).style('stroke', pc);
       T.mark(pale.node(), c.ds, 'tv_high', w);
       const solid = gg.append('rect').attr('class', 'tt-tv-min').attr('x', x(0)).attr('y', y0 - 6).attr('width', Math.max(3, x(lo) - x(0))).attr('height', 12).attr('rx', 4).style('fill', pc);
       T.mark(solid.node(), c.ds, 'tv_low', w);
@@ -1140,7 +1143,7 @@
       const lo = Number(s.tv_low) || 0;
       const hi = Number(s.tv_high);
       const gg = g.append('g').attr('class', play ? 'tt-grow-x' : '');
-      const pale = gg.append('rect').attr('class', 'tt-tv-max').attr('x', x(0)).attr('y', y0 - 7).attr('width', Math.max(4, x(hi) - x(0))).attr('height', 14).attr('rx', 4).style('fill', pc);
+      const pale = gg.append('rect').attr('class', 'tt-tv-max').attr('x', x(0)).attr('y', y0 - 7).attr('width', Math.max(4, x(hi) - x(0))).attr('height', 14).attr('rx', 4).style('fill', pc).style('stroke', pc);
       T.mark(pale.node(), c.ds, 'tv_high', w);
       const solid = gg.append('rect').attr('class', 'tt-tv-min').attr('x', x(0)).attr('y', y0 - 7).attr('width', Math.max(3, x(lo) - x(0))).attr('height', 14).attr('rx', 4).style('fill', pc);
       T.mark(solid.node(), c.ds, 'tv_low', w);

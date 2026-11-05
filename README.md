@@ -1,6 +1,9 @@
-# Policy timing & conflicts tracker
+# Politicians Finances
 
-**Live site: https://connoryqueen.github.io/policy-timing-tracker/**
+**Live sites**
+
+- Politicians Finances: https://connoryqueen.github.io/policy-timing-tracker/
+- The 2027 Roster: https://connoryqueen.github.io/policy-timing-tracker/2027-roster/
 
 Money that reached presidents’ families and connected firms, trades placed just before government announcements, and what investigators did about it, for Trump, Biden and Obama, plus the same check of every senator and 55 House members. Every item links to its sources. Being listed here is not proof of wrongdoing.
 
