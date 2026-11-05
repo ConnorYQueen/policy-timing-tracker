@@ -18,6 +18,11 @@
     font-size: var(--cds-font-size-caption); color: var(--color-fg-muted); }
   .site-bar button { font: inherit; border: 1px solid var(--color-border-line); background: var(--color-panel); color: var(--color-fg); border-radius: var(--cds-radius); min-height: 1.75rem; padding: 0 10px; cursor: pointer; }
   .site-bar button[aria-pressed="true"] { border-color: var(--color-fg); font-weight: var(--cds-font-weight-medium); }
+  .site-bar { flex-wrap: wrap; }
+  .site-bar-theme { display: flex; gap: 6px; align-items: center; }
+  .site-bar-link { display: inline-flex; align-items: center; min-height: 1.75rem; padding: 0 10px; border: 1px solid var(--color-fg); border-radius: var(--cds-radius); background: var(--color-panel); color: var(--color-fg); font-weight: var(--cds-font-weight-medium); text-decoration: none; margin-right: 8px; }
+  .site-bar-link:hover { text-decoration: underline; }
+  @media (pointer: coarse) { .site-bar-link { min-height: 44px; padding: 0 14px; } }
   .site-foot { max-width: 1240px; margin: 0 auto; padding: 8px clamp(16px, 4vw, 40px) 48px; font-size: var(--cds-font-size-body); }
   .site-foot .site-card { background: var(--color-panel); border: 1px solid var(--color-border-line); border-radius: var(--cds-radius); padding: var(--cds-pad-lg); }
   .site-foot h2 { font-size: var(--cds-font-size-heading); font-weight: var(--cds-font-weight-medium); margin: 0 0 6px; }
@@ -30,11 +35,14 @@
 </style>
 </head>
 <body>
-<div class="site-bar" role="group" aria-label="Color theme">
-  <span>Theme</span>
-  <button type="button" data-theme="system">Auto</button>
-  <button type="button" data-theme="light">Light</button>
-  <button type="button" data-theme="dark">Dark</button>
+<div class="site-bar">
+  <a class="site-bar-link" href="2027-roster/" title="Go to The 2027 Roster: who holds each Senate, House, and governor's seat after the 2026 midterms">The 2027 Roster &rarr;</a>
+  <div class="site-bar-theme" role="group" aria-label="Color theme">
+    <span>Theme</span>
+    <button type="button" data-theme="system">Auto</button>
+    <button type="button" data-theme="light">Light</button>
+    <button type="button" data-theme="dark">Dark</button>
+  </div>
 </div>
 <noscript><p class="site-noscript">This dashboard draws its charts with JavaScript. Turn JavaScript on to see it, or download the data files listed at the bottom of the page.</p></noscript>
 <div id="dash-root" data-appifact-content>
