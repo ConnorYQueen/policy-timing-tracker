@@ -1633,6 +1633,10 @@ function seatTally(st,k){
   list.forEach(m=>{c[m[1]]=(c[m[1]]||0)+1;});
   return {basis:'before',D:c.D,R:c.R,other:c.I+c.N,open:Math.max(0,size-list.length),size,asOf:LEG.asOf,sources:[],note:''};
 }
+// Hooks for features that extend a chamber's seat display. Each is its own small function so they can change independently.
+function chamberBarOpts(st,k,t){return {unit:'seats',before:t.basis==='before'};}
+function chamberExtrasHTML(st,k,t){return '';}
+function chamberNoteHTML(st,k,t){return '';}
 function chamberMeterHTML(st,k){
   const t=seatTally(st,k),rec=CH_BY[st]&&CH_BY[st][k];
   if(!t||!rec)return '';
@@ -1641,8 +1645,9 @@ function chamberMeterHTML(st,k){
   const when=t.asOf?dayText(t.asOf):'';
   const src=linkList(t.sources);
   const basis=t.noElection?`No regular election in 2026: the members in office as of ${when}.`:t.basis==='after'?`After the Nov. 3 election, as reported${when?` ${when}`:''}. Unofficial, and it can change.`:`Before the election: members in office as of ${when}. No post-election count has been verified yet.`;
-  return meterHTML(`seats-${st}-${k}`,`${rec.label} seats`,list,{unit:'seats',before:t.basis==='before'}).replace('m-bar pre','m-bar')
-    +`<p class="seat-basis">${esc(basis)}${t.note?' '+esc(t.note):''}${src.length?` Sources: ${src.join(', ')}.`:''}</p>`;
+  return meterHTML(`seats-${st}-${k}`,`${rec.label} seats`,list,chamberBarOpts(st,k,t)).replace('m-bar pre','m-bar')
+    +chamberExtrasHTML(st,k,t)
+    +`<p class="seat-basis">${esc(basis)}${t.note?' '+esc(t.note):''}${src.length?` Sources: ${src.join(', ')}.`:''}</p>`+chamberNoteHTML(st,k,t);
 }
 function chamberSeatsHTML(st){
   const parts=[chamberMeterHTML(st,'upper'),chamberMeterHTML(st,'lower')].filter(Boolean);
