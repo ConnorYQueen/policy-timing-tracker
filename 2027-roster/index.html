@@ -472,6 +472,7 @@ ul,ol{list-style:none}
 .sc-halo,.sc-mark{fill:none;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
 .sc-halo{stroke:var(--paper);stroke-width:5px}
 .sc-mark{stroke:var(--ink);stroke-width:2px}
+.sc-ovl{stroke-dasharray:5 3.5;stroke-linecap:butt}
 .sc-maj{position:absolute;transform:translate(-50%,-100%);font-size:11.5px;line-height:1.2;font-weight:700;white-space:nowrap;pointer-events:none}
 .sc-cap{margin:4px 0 0;font-size:12px;line-height:1.35;color:var(--ink-2);text-align:center;text-wrap:balance}
 .sc-read{display:block;font-weight:700;color:var(--ink)}
@@ -709,6 +710,8 @@ table.seats{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
 .tt-line{display:block;margin-top:2px}
 .tt-rows{margin-top:4px;display:grid;gap:2px}
 .tt-rows span{display:flex;gap:6px;align-items:baseline}
+.tt-rows .tt-t{display:block}
+.tt-rows .tt-t small{display:block;font-size:11.5px;opacity:.85}
 .tt-rows i{width:8px;height:8px;border-radius:50%;flex:none;align-self:center;box-shadow:0 0 0 1px rgba(255,255,255,.5)}
 .tooltip .chips{margin-top:5px}
 .tooltip .chip.flip.soft{color:var(--paper);box-shadow:inset 0 0 0 1.5px var(--flip)}
@@ -1621,7 +1624,12 @@ function stateFlipList(view,st){
   if(view==='house')return ch&&ch.lower?[ch.lower]:[];
   return [bucket(st).governor].filter(Boolean);
 }
-function stateTipRow(label,ch){return `<span><i style="background:${INK[chamberToken(ch)]||'var(--u)'}"></i>${esc(label)}: ${esc(chamberWords(ch))}</span>`;}
+// Seat counts for a tooltip: 'Democrats 26, Republicans 24 (after the election)'. Nothing where there is no count.
+function tipSeatText(st,k){
+  const t=seatTally(st,k);
+  return t?`Democrats ${t.D}, Republicans ${t.R}${t.other?`, other ${t.other}`:''}${t.open?`, not called or vacant ${t.open}`:''} (${t.noElection?'no election in 2026':t.basis==='after'?'after the election':'before the election'})`:'';
+}
+function stateTipRow(label,ch,seats){return `<span><i style="background:${INK[chamberToken(ch)]||'var(--u)'}"></i>${seats?`<span class="tt-t">${esc(label)}: ${esc(chamberWords(ch))}<small>${esc(seats)}</small></span>`:`${esc(label)}: ${esc(chamberWords(ch))}`}</span>`;}
 /* ---------- State control: bars inside each state, stripes for divided control ---------- */
 // Divided control (every office called, no party holds all three) is two parties side by side, so it is drawn as stripes, not a blend.
 const stateSplit=st=>stateControl(st).kind==='X';
@@ -1964,12 +1972,26 @@ function seatChartHTML(st,k,t){
   // The majority line sits where the leading side's T-th seat ends, as on the bar.
   const am=(g.pts[m-1].a+g.pts[m].a)/2,co=Math.cos(am),si=Math.sin(am);
   const at2=r=>`${(g.cx+r*co).toFixed(3)} ${(g.cy-r*si).toFixed(3)}`,tick=`M${at2(g.rIn)}L${at2(g.rOut)}`;
+  // Veto override (where the rule was checked): a dashed line at the same spot the bar marks. A rule that equals a majority shares the solid line.
+  const ov=chamberBarOpts(st,k,t).override;
+  let ovLine='',ovNum='',ovCap='',ovTip='';
+  if(ov&&ov.need<n){
+    ovTip=' '+ov.tip;
+    if(ov.need===T)ovCap=' The same line marks the veto-override number.';
+    else{
+      const m2=clamp(t.D>=t.R?ov.need:n-ov.need,1,n-1),a2=(g.pts[m2-1].a+g.pts[m2].a)/2,c2=Math.cos(a2),s2=Math.sin(a2);
+      const p2=r=>`${(g.cx+r*c2).toFixed(3)} ${(g.cy-r*s2).toFixed(3)}`,tk2=`M${p2(g.rIn)}L${p2(g.rOut)}`;
+      ovLine=`<path class="sc-halo" d="${tk2}"/><path class="sc-mark sc-ovl" d="${tk2}"/>`;
+      ovNum=`<b class="sc-maj sc-ovn" aria-hidden="true" style="left:${(100*(g.cx+(g.rOut+.15)*c2)/g.W).toFixed(1)}%;top:${(100*(g.cy-(g.rOut+.15)*s2)/g.H).toFixed(1)}%">${int(ov.need)}</b>`;
+      ovCap=` The dashed line marks a veto override, ${int(ov.need)} seats${ov.label.indexOf('present')>=0||ov.label.indexOf('voting')>=0?' if every member votes':''}.`;
+    }
+  }
   const words=`Democrats ${int(t.D)}, Republicans ${int(t.R)}${t.other?`, other ${int(t.other)}`:''}${t.open?`, not called or vacant ${int(t.open)}`:''}`;
-  const label=`${rec.label} seat chart${before?', before the election':''}. ${words}. A majority is ${int(T)} of ${int(n)} seats.`;
-  const cap=`${before?'Faded: the roster before the election. Each dot is a member in office.':mem?'Each dot is a member in office.':'Each dot is one seat.'} The line marks a majority.${t.open?' Open circles are vacant or not called.':''}${mem?' Hover or select a dot to find the member.':''}`;
+  const label=`${rec.label} seat chart${before?', before the election':''}. ${words}. A majority is ${int(T)} of ${int(n)} seats.${ovTip}`;
+  const cap=`${before?'Faded: the roster before the election. Each dot is a member in office.':mem?'Each dot is a member in office.':'Each dot is one seat.'} The line marks a majority.${ovCap}${t.open?' Open circles are vacant or not called.':''}${mem?' Hover or select a dot to find the member.':''}`;
   return `<div class="sc${before?' sc-f':''}${mem?' sc-m':''}"><div class="sc-wrap" style="max-width:${Math.round(g.W*SC_UNIT)}px">
-    <svg class="sc-svg" viewBox="0 0 ${g.W} ${g.H}" role="img" aria-label="${esc(label)}" data-tip="${esc(words+(before?' (before the election)':''))}">${dots}<path class="sc-halo" d="${tick}"/><path class="sc-mark" d="${tick}"/></svg>
-    <b class="sc-maj" aria-hidden="true" style="left:${(100*(g.cx+(g.rOut+.15)*co)/g.W).toFixed(1)}%;top:${(100*(g.cy-(g.rOut+.15)*si)/g.H).toFixed(1)}%">${int(T)}</b></div>
+    <svg class="sc-svg" viewBox="0 0 ${g.W} ${g.H}" role="img" aria-label="${esc(label)}" data-tip="${esc(words+(before?' (before the election)':'')+ovTip)}">${dots}<path class="sc-halo" d="${tick}"/><path class="sc-mark" d="${tick}"/>${ovLine}</svg>
+    <b class="sc-maj" aria-hidden="true" style="left:${(100*(g.cx+(g.rOut+.15)*co)/g.W).toFixed(1)}%;top:${(100*(g.cy-(g.rOut+.15)*si)/g.H).toFixed(1)}%">${int(T)}</b>${ovNum}</div>
     <p class="sc-cap">${esc(cap)}<span class="sc-read" aria-live="polite"></span></p>
   </div>`;
 }
@@ -3864,12 +3886,12 @@ function tipStateHTML(st,view){
     const sc=stateControl(st),ch=CH_BY[st];
     if(view==='control'){
       if(sc.none)return name+line('No state legislature.');
-      const rows=[b.governor?dotRow(b.governor,st==='DC'?'Mayor':'Governor'):'',ch?stateTipRow(ch.upper.label,ch.upper):'',ch&&ch.lower?stateTipRow(ch.lower.label,ch.lower):''].join('');
+      const rows=[b.governor?dotRow(b.governor,st==='DC'?'Mayor':'Governor'):'',ch?stateTipRow(ch.upper.label,ch.upper,tipSeatText(st,'upper')):'',ch&&ch.lower?stateTipRow(ch.lower.label,ch.lower,tipSeatText(st,'lower')):''].join('');
       const chg=stateChanges(st);
       return name+line(sc.verdict.head)+(chg.length?line('Changed: '+chg.map(x=>`${x.label} ${x.flip.split('>').join(' to ')}${x.firm?'':', not called'}`).join('; ')+'.'):'')+`<span class="tt-rows">${rows}</span>`;
     }
     const x=view==='senate'?ch&&ch.upper:ch&&ch.lower,tl=seatTally(st,view==='senate'?'upper':'lower');
-    return name+(x?`<span class="tt-rows">${stateTipRow(x.label,x)}</span>`+(tl?line(`${tl.D} Democratic, ${tl.R} Republican${tl.open?`, ${tl.open} not called or vacant`:''} (${tl.basis==='after'?'after':'before'} the election)`):'')+(x.flip?line(`Changed from ${PARTY_WORD[x.previousParty]}${x.status==='called'?'':', not called'}.`):''):line(view==='senate'?'No state legislature.':'No second chamber.'));
+    return name+(x?`<span class="tt-rows">${stateTipRow(x.label,x)}</span>`+(tl?line(tipSeatText(st,view==='senate'?'upper':'lower')):'')+(x.flip?line(`Changed from ${PARTY_WORD[x.previousParty]}${x.status==='called'?'':', not called'}.`):''):line(view==='senate'?'No state legislature.':'No second chamber.'));
   }
   const gov=b.governor?[dotRow(b.governor,st==='DC'?'Mayor':'Governor')]:[];
   const sen=b.senate.map(s=>dotRow(s,'Senator'));
