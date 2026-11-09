@@ -33,6 +33,10 @@ for layer in state sldu sldl; do
   node "$HERE/project.mjs" "$B/ll_${layer}.json" "$B/pj_${layer}.json"
 done
 
+# New Hampshire's towns (county subdivisions): used only to read the floterial districts' towns (nh_floterials.json)
+"$PY" -I "$HERE/read_shp.py" cousub "$DATA/cb_2025_33_cousub_500k/cb_2025_33_cousub_500k" "$B/ll_cousub.json"
+node "$HERE/project.mjs" "$B/ll_cousub.json" "$B/pj_cousub.json"
+
 echo "== 4. prove the projection against the page's own state shapes"
 "$PY" -I "$HERE/check_projection.py" "$B/geo.json" "$B/pj_state.json"
 

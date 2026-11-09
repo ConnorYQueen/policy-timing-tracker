@@ -21,6 +21,8 @@ FILES = {
     'tl_2026_27_sldl': 'TIGER2026/SLDL/tl_2026_27_sldl.zip',
     'tl_2026_28_sldu': 'TIGER2026/SLDU/tl_2026_28_sldu.zip',
     'tl_2026_28_sldl': 'TIGER2026/SLDL/tl_2026_28_sldl.zip',
+    # New Hampshire's towns (county subdivisions), only used to read the floterial districts' towns (nh_floterials.json)
+    'cb_2025_33_cousub_500k': 'GENZ2025/shp/cb_2025_33_cousub_500k.zip',
 }
 KEEP = ('.shp', '.shx', '.dbf', '.prj', '.cpg')  # only the pieces pyshp needs
 

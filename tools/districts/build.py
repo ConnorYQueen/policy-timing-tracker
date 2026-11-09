@@ -4,7 +4,8 @@ Usage:
   python3 -I build.py --work <work_dir> --out <2027-roster/legislative-districts> [--only ST,ST]
                       [--tol-screen 0.30] [--quant-screen 0.15]
 
-<work_dir> must hold geo.json and leg.json (extract_page_data.py) and pj_sldu.json / pj_sldl.json (project.mjs).
+<work_dir> must hold geo.json and leg.json (extract_page_data.py) and pj_sldu.json / pj_sldl.json / pj_cousub.json
+(project.mjs; the last is New Hampshire's towns, read only for the floterial districts).
 
 What it does for each state and chamber:
   * rebuilds each district as polygons with holes from the projected rings;
@@ -15,7 +16,9 @@ What it does for each state and chamber:
     writes compact relative SVG paths;
   * computes a label point inside the shape (centroid, or pole of inaccessibility when the centroid is outside
     or hugs the edge) and a bounding box;
-  * joins each district to the members who hold it in the page's legislator data (see JOIN RULES).
+  * joins each district to the members who hold it in the page's legislator data (see JOIN RULES);
+  * New Hampshire House only: draws the floterial districts listed in nh_floterials.json as the union of the base
+    districts they overlay (see FLOTERIAL DISTRICTS) and stores them under the file's top-level "f".
 """
 import argparse, collections, json, os, re, struct, sys
 import numpy as np
@@ -56,9 +59,16 @@ QUANT_SCREEN = 0.15       # coordinate grid step is at most this many screen px 
 MIN_AREA_MAP = 0.3        # drop islands/holes under this many map px^2 ...
 MIN_AREA_SCREEN = 3.0     # ... or under this many screen px^2 at the state's zoom, whichever is smaller
 
-NONGEO = {                # members with no geographic district; they never match a polygon
+NONGEO = {                # members with no geographic district; they never match a polygon and are not "unmatched"
+    # Maine House: the non-voting tribal representatives (the page lists Houlton Band of Maliseet Indians and
+    # Passamaquoddy Tribe; Penobscot Nation is not in the member list).
     ('ME', 'l'): {'Houlton Band of Maliseet Indians', 'Passamaquoddy Tribe', 'Penobscot Nation'},
 }
+FLOTERIALS = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'nh_floterials.json')
+COUNTY_FIPS = {'Belknap': '001', 'Carroll': '003', 'Cheshire': '005', 'Coos': '007', 'Grafton': '009',
+               'Hillsborough': '011', 'Merrimack': '013', 'Rockingham': '015', 'Strafford': '017', 'Sullivan': '019'}
+FLO_INSIDE = 0.98         # a base district counts as inside the listed towns when this share of it is
+FLO_SLIVER = 0.02         # a base district with a share between this and FLO_INSIDE is a partial overlap: an error
 
 # ---- JOIN RULES --------------------------------------------------------------------------------------------
 # Census gives NAME ('19', '07A', 'Merrimack 08', 'Berkshire-Hampden-Franklin-Hampshire', 'Windsor-Orange-1', ...).
@@ -265,9 +275,69 @@ def num(v, dec):
     return int(r) if r == int(r) else r
 
 
+# ---- FLOTERIAL DISTRICTS (New Hampshire House) -------------------------------------------------------------
+# The Census publishes only the 164 non-overlapping House districts. A floterial district overlays two or more whole
+# base districts (the statute lists it by town), so its shape is the union of those districts AS DRAWN: its outline
+# then runs exactly along base-district edges. The towns in nh_floterials.json are used to find which base districts
+# those are, and the build stops rather than guess when the towns are not a union of whole base districts.
+def build_floterials(spec, members, keep, towns, dec, min_area):
+    """Returns (dict floterial key -> {d, c, b, n, m, of}, log lines)."""
+    base_keys = set(keep)
+    by_district = collections.defaultdict(list)
+    for i, m in enumerate(members):
+        by_district[m[2]].append(i)
+    out, log = {}, []
+    for key in sorted(spec['floterials'], key=natkey):
+        f = spec['floterials'][key]
+        county = key.rsplit(' ', 1)[0]
+        idx = by_district.get(key, [])
+        if key in base_keys:
+            raise SystemExit(f'NH floterial {key!r} is also a base district')
+        if county not in COUNTY_FIPS or not idx:
+            raise SystemExit(f'NH floterial {key!r}: unknown county or no member of the page holds it')
+        if f['seats'] != len(idx):
+            raise SystemExit(f'NH floterial {key!r}: nh_floterials.json says {f["seats"]} seats, the page lists {len(idx)} members')
+        units = []
+        for name in f['towns']:
+            hit = [t for t in towns if t['name'] == name and t['county'] == COUNTY_FIPS[county]]
+            if len(hit) != 1:
+                raise SystemExit(f'NH floterial {key!r}: town {name!r} found {len(hit)} times in {county} County')
+            units.append(feature_geom(hit[0]['rings']))
+        area = shapely.union_all(units)
+        of, shares = [], {}
+        for k in sorted(keep, key=natkey):
+            g = keep[k][1]
+            share = g.intersection(area).area / g.area
+            if share >= FLO_INSIDE:
+                of.append(k)
+            elif share > FLO_SLIVER:
+                raise SystemExit(f'NH floterial {key!r}: base district {k!r} is only {share:.1%} inside the listed towns, '
+                                 f'so the towns are not a union of whole base districts')
+            shares[k] = share
+        covered = area.intersection(shapely.union_all([keep[k][1] for k in of])).area / area.area if of else 0
+        if not of or covered < FLO_INSIDE:
+            raise SystemExit(f'NH floterial {key!r}: the base districts found cover only {covered:.1%} of the listed towns')
+        polys = [Polygon(ext, holes) for k in of for ext, holes in keep[k][0]]
+        union = shapely.union_all(polys)
+        parts = finish_district(union, dec, min_area, union)
+        x0, y0, x1, y1 = bbox_of(parts)
+        c = label_point(parts, dec)
+        out[key] = {
+            'd': path_of(parts, dec),
+            'c': [num(c[0], dec), num(c[1], dec)],
+            'b': [num(x0, dec), num(y0, dec), num(x1, dec), num(y1, dec)],
+            'n': 'Floterial district ' + key,
+            'm': idx,
+            'of': of,
+        }
+        log.append(f'   floterial {key}: {len(idx)} seats, {len(f["towns"])} towns -> base districts {", ".join(of)} '
+                   f'(least inside {min(shares[k] for k in of):.1%}, towns covered {covered:.1%})')
+    return out, log
+
+
 # ---- MAIN --------------------------------------------------------------------------------------------------
-def build_chamber(st, ch, feats, members, state_bbox, args):
-    """Returns (json object for this chamber, stats dict)."""
+def build_chamber(st, ch, feats, members, state_bbox, args, keep=None):
+    """Returns (json object for this chamber, stats dict). `keep`, when given, receives key -> (drawn parts, raw geometry)."""
     w, h = state_bbox[2] - state_bbox[0], state_bbox[3] - state_bbox[1]
     z = min(max(min(STAGE_W / w, STAGE_H / h), Z_MIN), Z_MAX)
     tol = args.tol_screen / z
@@ -324,11 +394,13 @@ def build_chamber(st, ch, feats, members, state_bbox, args):
         }
         if not ms:
             memberless.append(key)
+        if keep is not None:
+            keep[key] = (parts, geoms[i])
     ordered = {k: districts[k] for k in sorted(districts, key=natkey)}
     stats = {
         'polygons': len(recs), 'members': len(members), 'matched': sum(len(v) for v in holders.values()),
         'unmatched': unmatched, 'nongeo': nongeo, 'memberless': sorted(memberless, key=natkey),
-        'z': round(z, 2), 'tol': round(tol, 4), 'dec': dec,
+        'z': round(z, 2), 'tol': round(tol, 4), 'dec': dec, 'min_area': min_area,
     }
     return ordered, stats
 
@@ -349,6 +421,9 @@ def main():
         for f in json.load(open(f'{args.work}/pj_{layer}.json')):
             if f['st'] in leg and not str(f['code']).startswith('ZZ'):   # ZZ = "districts not defined" (water)
                 feats[(f['st'], ch)].append(f)
+    towns = None
+    if os.path.exists(f'{args.work}/pj_cousub.json'):
+        towns = [f for f in json.load(open(f'{args.work}/pj_cousub.json')) if f['st'] == 'NH']
     os.makedirs(args.out, exist_ok=True)
     only = set(args.only.split(',')) if args.only else None
     overlay_path = f'{args.work}/overlay.json'      # written by tiger_update.py: {"MI": ["u"], ...}
@@ -368,8 +443,21 @@ def main():
             if members is None:
                 continue
             layer_ch = 'u' if ch == 'g' else ch    # Nebraska's single chamber is drawn from the Census upper-house layer
-            obj, stats = build_chamber(st, ch, feats[(st, layer_ch)], members, geo[st]['b'], args)
+            keep = {} if (st, ch) == ('NH', 'l') else None
+            obj, stats = build_chamber(st, ch, feats[(st, layer_ch)], members, geo[st]['b'], args, keep)
             doc[ch] = obj
+            if keep is not None and os.path.exists(FLOTERIALS):
+                if towns is None:
+                    raise SystemExit('pj_cousub.json is missing: run read_shp.py cousub and project.mjs (see run.sh)')
+                spec = json.load(open(FLOTERIALS, encoding='utf-8'))
+                fl, log = build_floterials(spec, members, keep, towns, stats['dec'], stats['min_area'])
+                print('\n'.join(log))
+                if fl:
+                    doc['f'] = fl
+                    held = {i for v in fl.values() for i in v['m']}
+                    stats['unmatched'] = [(i, d) for i, d in stats['unmatched'] if i not in held]
+                    stats['matched'] += len(held)
+                    stats['floterial'] = len(fl)
             hashes[ch] = roster_hash(members)
             stats.update(st=st, ch=ch)
             rows.append(stats)

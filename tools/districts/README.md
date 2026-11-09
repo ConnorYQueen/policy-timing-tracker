@@ -17,11 +17,11 @@ downloads as untrusted data: they are only unpacked and read by pyshp, never exe
 
 | step | script | what it does |
 |---|---|---|
-| 1 | `fetch.py` | downloads `cb_2025_us_sldu_500k`, `cb_2025_us_sldl_500k`, `cb_2025_us_state_500k` (GENZ2025) and the 2026 TIGER/Line plans of the five state chambers whose map changed (below) |
+| 1 | `fetch.py` | downloads `cb_2025_us_sldu_500k`, `cb_2025_us_sldl_500k`, `cb_2025_us_state_500k` (GENZ2025), New Hampshire's `cb_2025_33_cousub_500k` (towns), and the 2026 TIGER/Line plans of the five state chambers whose map changed (below) |
 | 2 | `extract_page_data.py` | reads `geo-data` and `legislator-data` out of `2027-roster/index.html` (read only) |
-| 3 | `read_shp.py`, `tiger_update.py`, `project.mjs` | shapefile to lon/lat JSON; the changed chambers' 2026 plans swapped in; then into the page's projection with d3 |
+| 3 | `read_shp.py`, `tiger_update.py`, `project.mjs` | shapefile to lon/lat JSON; the changed chambers' 2026 plans swapped in; then into the page's projection with d3 (also New Hampshire's towns) |
 | 4 | `check_projection.py` | proves the projection against the page's own state shapes |
-| 5 | `build.py` | simplifies, joins to members, writes the 50 files |
+| 5 | `build.py` | simplifies, joins to members, writes the 50 files; for the New Hampshire House also draws the floterial districts listed in `nh_floterials.json` |
 | 6 | `validate.py` | re-reads the files and checks them against the page; writes `validation-report.md` |
 | 7 | `check_spatial.py` | informational: parties on the map cluster the way real legislatures do (shuffle test); writes `spatial-check.md` |
 
@@ -57,6 +57,8 @@ median of 0.9995.
  "src":"U.S. Census Bureau cartographic boundary files, 2025 vintage (GENZ2025; ...), 1:500,000",
  "u":{ "<key>":{"d":"M...Z","c":[x,y],"b":[x0,y0,x1,y1],"n":"State Senate District 1","m":[0,3]}, ... },
  "l":{ ... },                       // Nebraska has one chamber, under "g" instead of "u"/"l"
+ "f":{ "Rockingham 31":{"d":"M...Z","c":[x,y],"b":[x0,y0,x1,y1],"n":"Floterial district Rockingham 31","m":[320,321],
+                        "of":["Rockingham 2","Rockingham 3"]}, ... },     // New Hampshire only, see below
  "h":{"u":2905054787,"l":399759407} }
 ```
 
@@ -73,6 +75,11 @@ median of 0.9995.
 - Optional `note`: one short plain-English sentence about the state's districts (a chamber whose map changed for the 2026
   cycle), shown in the map key and, on a phone, in the Notes list. Text only (the page escapes it); a missing, blank or
   non-string note is ignored. Only the three states rebuilt from the 2026 files have one.
+- `f` (New Hampshire only, next to `l`): floterial districts of the House, keyed by the district string their members use
+  ('Rockingham 31'), each with the same `d c b n m` and `of`, the keys in `l` of the base districts it overlays. A floterial
+  shape is exactly the union of those base districts as drawn (the same vertices), so its outline runs along base-district
+  edges; it is meant to be drawn as an outline over the base map, never as a fill. A floterial district's members are not in
+  any entry of `l`. `h` stays the hash of the member list, so one hash covers `l` and `f`.
 - `h[chamber]` is FNV-1a (32 bit) over the members' district strings in list order, so the page can check the files
   still match its member list:
 
@@ -88,6 +95,13 @@ who held the district before the Nov. 3 election (stripes when its members diffe
 that does not match shows "District map not shown: its districts do not match this page's member list" and draws nothing,
 so rerun the build after the member list changes. From `file://` or offline the fetch cannot work, and the key says "District
 map unavailable here; it loads when the page is served over the web."
+
+Floterial districts (`f`) are never filled and never take part in hit-testing: the page draws each as a dashed outline in
+the overlay layer, shown only for the district the pointer or keyboard is on, the selected district, or a floterial
+district whose member is chosen in the member list (the drawn chamber's list works as a list box: click, or arrow keys and
+Enter). The tooltip and aria-label of each base district a floterial covers name its members, and the key gets one line,
+"Floterial district: overlays several districts". An entry of `f` that is malformed is left out; a file with no `f` draws as
+before. Members with no shape (the other New Hampshire floterial districts) are named in the key and in the selection text.
 
 Draw order: the district shapes do not cover water that the Census district files leave out (Sandusky Bay, Lake
 Pontchartrain, Green Bay, parts of the Great Lakes), while the page's state shapes include some of it, so draw the
@@ -119,8 +133,11 @@ Washington, New Jersey, West Virginia Senate, South Dakota, North Dakota, Vermon
 - Idaho House: seat letter stripped ('1A', '1B' -> district 1).
 - Census placeholder polygons "State Senate/House Districts not defined" (code `ZZZ`: Louisiana Senate, Wisconsin
   both chambers) are dropped; they are areas outside every district.
-- Maine House: the two tribal representatives in the data (Houlton Band of Maliseet Indians, Passamaquoddy Tribe) have
-  no geographic district and stay unmatched by design.
+- Maine House: the two tribal representatives in the data (Houlton Band of Maliseet Indians, Passamaquoddy Tribe) are
+  non-voting, hold no geographic district, and are not "unmatched": `NONGEO` in `build.py` names them, `validate.py` lists them
+  as a note, and the page labels them in the member list and leaves them out of the party tally and the seat bar (151 voting
+  seats). The Penobscot Nation is in `NONGEO` too but is not in the page's member list.
+- New Hampshire House floterial districts: see below.
 - Washington, DC and Puerto Rico are out of scope.
 
 ## Caveats
@@ -140,8 +157,18 @@ Washington, New Jersey, West Virginia Senate, South Dakota, North Dakota, Vermon
   election; in a chamber with a new map those members were elected from the earlier lines (Michigan's State Senate), so
   the color is the earlier holder of the number, not of the new territory. The file's `note` says so.
 - **New Hampshire House is partial.** The Census publishes the 164 non-overlapping districts; the 39 floterial
-  districts (e.g. 'Rockingham 31' to 'Rockingham 40', 'Hillsborough 37' to '45') overlay them and have no shape, so
-  their 55 members have no district on the map.
+  districts (e.g. 'Rockingham 31' to 'Rockingham 40', 'Hillsborough 37' to '45') overlay them and have no Census shape.
+  A floterial district is a union of whole base districts, and the statute (RSA 662:5) lists it by town. `nh_floterials.json`
+  holds, for each floterial district whose row was read in a source, the towns, the seat count and where it was read;
+  `build.py` finds the base districts that hold exactly those towns (Census towns, same vintage), refuses to build a
+  floterial whose towns are not a union of whole base districts, whose town is not found, or whose seat count differs from the
+  member list, and writes the union as `f`. **Only the entries in that file are drawn: at the last build 2 of the 39
+  (Rockingham 31 and 32, 3 members), so 52 of 382 members still have no district on the map.** The other 37 could not be
+  added because their rows of RSA 662:5 were not read: they must not be guessed. To add one, read its row in RSA 662:5 (or the
+  Secretary of State's 'Towns and Wards as Districted for Election Purposes'), add `"Belknap 8": {"seats": 2, "towns": [...],
+  "sources": [...], "read": "..."}`, rerun `run.sh`; the build log prints the base districts it found, and `validate.py`
+  re-checks the result. The two rows now in the file were read from search-result excerpts of the statute page and the
+  Secretary of State table, not from the full pages (see `how-read` in the file), and should be confirmed against the statute.
 - **Generalized, shoreline-clipped boundaries** (1:500,000): good for a state-scale map, not for finding which
   district an address is in.
 - **Members are those in office before the Nov. 3, 2026 election** (the page's `legislator-data`); districts show who

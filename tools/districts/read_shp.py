@@ -1,6 +1,6 @@
 """Step 2: read one Census shapefile (via pyshp) into a plain lon/lat JSON file for project.mjs.
 
-Usage:  python3 -I read_shp.py <layer: sldu|sldl|state> <shapefile_basename_without_extension> <out.json>
+Usage:  python3 -I read_shp.py <layer: sldu|sldl|state|cousub> <shapefile_basename_without_extension> <out.json>
 
 Output: [{"st":"CA","code":"019","name":"19","lsad":"State Senate District 19","g":[ [ring, ring...], ... ]}, ...]
 where "g" is a list of polygons and each polygon is a list of rings (outer ring first, holes after),
@@ -11,7 +11,7 @@ import json, sys
 import shapefile  # pyshp
 from shapely.geometry import Polygon
 
-CODE = {'sldu': 'SLDUST', 'sldl': 'SLDLST', 'state': 'STATEFP'}
+CODE = {'sldu': 'SLDUST', 'sldl': 'SLDLST', 'state': 'STATEFP', 'cousub': 'COUSUBFP'}
 
 
 def signed_area(ring):
@@ -48,13 +48,16 @@ def main(layer, base, out):
     res = []
     for sr in r.iterShapeRecords():
         rec = dict(zip(fields, sr.record))
-        res.append({
+        item = {
             'st': rec.get('STUSPS'),
             'code': rec[CODE[layer]],
             'name': rec.get('NAME'),
             'lsad': rec.get('NAMELSAD'),
             'g': polygons(sr.shape),
-        })
+        }
+        if 'COUNTYFP' in rec:      # county subdivisions: the county tells two towns of the same name apart
+            item['county'] = rec['COUNTYFP']
+        res.append(item)
     with open(out, 'w', encoding='utf-8') as f:
         json.dump(res, f, separators=(',', ':'), ensure_ascii=False)
     print(layer, len(res), 'features ->', out)
