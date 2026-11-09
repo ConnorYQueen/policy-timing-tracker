@@ -113,6 +113,11 @@ ul,ol{list-style:none}
 .ovl{pointer-events:none;stroke:none}
 .bars{pointer-events:none}
 .bar-plate{fill:var(--keyline)}
+/* State control: a chamber counted before the election is drawn faded. Leading and not called read as dots and hatch, as on the shapes. */
+.bar-before,.tbar.before{opacity:.45}
+.tbar i.sb-dots{background-image:radial-gradient(circle,var(--screen) .65px,transparent .95px);background-size:3px 3px}
+.tbar i.sb-hatch{background-image:repeating-linear-gradient(45deg,var(--screen) 0 .8px,transparent .8px 2.6px)}
+.strip button.sb-split .tcode{padding:0 3px;border-radius:2px;background:var(--map-text-edge);text-shadow:none}
 .bars{transition:opacity .2s}
 .stage:not([data-view="control"]) .sheet[data-view="control"] .bars{opacity:0}
 .zooming .lbl,.zooming .bars{visibility:hidden}
@@ -288,7 +293,7 @@ ul,ol{list-style:none}
 .mi-src a,.mi-res a{font-weight:700;text-decoration:underline;overflow-wrap:anywhere}
 /* token fills for HTML marks; map patterns use the same inks */
 .t-D{background-color:var(--d)}
-.t-X{background-color:var(--mid)}
+.t-X{background:repeating-linear-gradient(45deg,var(--d) 0 4px,var(--paper) 4px 4.7px,var(--r) 4.7px 8.7px,var(--paper) 8.7px 9.4px)}
 .t-R{background-color:var(--r)}
 .t-I{background-color:var(--i)}
 .t-U{background-color:var(--u)}
@@ -1348,6 +1353,7 @@ function viewToken(view,st,seat){
 const STRIPE=18,DOT=6,HATCH=5;
 function patternMarkup(view,tok){
   const id=`p-${view}-${tok}`;
+  if(tok==='BD'||tok==='BH')return stateBarsPattern(id,tok);
   const open=(w,rot,kind)=>`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${w}" height="${w}" data-rot="${rot}" data-kind="${kind}">`;
   if(tok==='OH')return open(HATCH,45,'tex')+`<rect width="1.8" height="${HATCH}" style="fill:var(--u)"/></pattern>`;
   if(tok==='OD')return open(DOT,0,'tex')+`<circle cx="1.5" cy="1.5" r="1.02" style="fill:var(--screen)"/><circle cx="4.5" cy="4.5" r="1.02" style="fill:var(--screen)"/></pattern>`;
@@ -1546,6 +1552,62 @@ function stateFlipList(view,st){
   return [bucket(st).governor].filter(Boolean);
 }
 function stateTipRow(label,ch){return `<span><i style="background:${INK[chamberToken(ch)]||'var(--u)'}"></i>${esc(label)}: ${esc(chamberWords(ch))}</span>`;}
+/* ---------- State control: bars inside each state, stripes for divided control ---------- */
+// Divided control (every office called, no party holds all three) is two parties side by side, so it is drawn as stripes, not a blend.
+const stateSplit=st=>stateControl(st).kind==='X';
+// "Governor: Republican. State Senate: Democratic. ..." for the label of a state whose color no longer says who holds what.
+function stateHoldsText(c){
+  return c.slots.map(x=>`${x.label}: ${x.np?'nonpartisan':x.p?PARTY_WORD[x.p]:x.soft?`${PARTY_WORD[x.soft]} ahead, not called`:'not called'}.`).join(' ');
+}
+const stateBeforeChamber=(st,k)=>{const t=seatTally(st,k);return !!t&&t.basis==='before';};
+/* Rows, top to bottom: governor, State Senate, State House (Nebraska: one nonpartisan Legislature bar).
+   A row is a list of [share, ink, pattern] left to right. A chamber is its seat split: Democratic from the left,
+   Republican from the right, other and not called between. A governor leading, not called, is dotted; not called is hatched.
+   A chamber counted before the election has before:true and is drawn faded. */
+function stateBarsRows(st){
+  const c=stateControl(st);
+  if(c.none)return [];
+  const rows=[],ch=CH_BY[st]||{};
+  const gov=c.slots.find(x=>x.gov);
+  if(gov)rows.push({segs:[gov.p?[1,INK[gov.p]]:gov.soft?[1,INK[gov.soft],'BD']:[1,INK.U,'BH']]});
+  ['upper','lower'].forEach(k=>{
+    const rec=ch[k];
+    if(!rec)return;
+    const t=seatTally(st,k);
+    if(!t){
+      const tok=chamberToken(rec);
+      rows.push({segs:[[1,INK[tok[0]]||INK.U]]});
+      return;
+    }
+    const n=Math.max(t.size,t.D+t.R+t.other+t.open),open=n-t.D-t.R-t.other;
+    rows.push({before:t.basis==='before',segs:[[t.D/n,INK.D],[t.other/n,INK.I],[open/n,INK.U],[t.R/n,INK.R]].filter(x=>x[0]>0)});
+  });
+  return rows;
+}
+function stateBarsPattern(id,tok){
+  const open=(w,rot)=>`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${w}" height="${w}" data-bar="1"${rot?` patternTransform="rotate(${rot})"`:''}>`;
+  return tok==='BD'?open(4,0)+`<circle cx="1" cy="1" r=".75" style="fill:var(--screen)"/><circle cx="3" cy="3" r=".75" style="fill:var(--screen)"/></pattern>`
+    :open(3,45)+`<rect width="1.1" height="3" style="fill:var(--screen)"/></pattern>`;
+}
+function stateBarsMarkup(st,used){
+  const rows=stateBarsRows(st),H=rows.length*BAR.row+(rows.length-1)*BAR.gap;
+  let m=`<rect class="bar-plate" x="${-BAR.pad}" y="${-BAR.pad}" width="${BAR.w+2*BAR.pad}" height="${H+2*BAR.pad}" rx="1.5"/>`;
+  rows.forEach((r,i)=>{
+    // Each segment runs on to the end of the row and the next paints over it, so no seam shows the plate between two seats.
+    let x=0,g='';
+    r.segs.forEach(seg=>{
+      const y=i*(BAR.row+BAR.gap),w=BAR.w-x;
+      g+=`<rect x="${x.toFixed(2)}" y="${y}" width="${w.toFixed(2)}" height="${BAR.row}" style="fill:${seg[1]}"/>`;
+      if(seg[2]){used.add(seg[2]);g+=`<rect x="${x.toFixed(2)}" y="${y}" width="${w.toFixed(2)}" height="${BAR.row}" style="fill:url(#p-control-${seg[2]})"/>`;}
+      x+=seg[0]*BAR.w;
+    });
+    m+=r.before?`<g class="bar-before">${g}</g>`:g;
+  });
+  return {markup:m,h:H+2*BAR.pad};
+}
+function stateBarsHTML(st){
+  return `<span class="tbars" aria-hidden="true">${stateBarsRows(st).map(r=>`<span class="tbar${r.before?' before':''}">${r.segs.map(seg=>`<i${seg[2]?` class="${seg[2]==='BD'?'sb-dots':'sb-hatch'}"`:''} style="width:${(seg[0]*100).toFixed(2)}%;background-color:${seg[1]}"></i>`).join('')}</span>`).join('')}</span>`;
+}
 function stateLegend(v){
   const item=(tk,text)=>`<span class="lg"><span class="sws">${tk.map(x=>swatch(x)).join('')}</span>${text}</span>`;
   const starLg=(text,soft)=>`<span class="lg">${starSvg('sw-star',soft)}${text}</span>`;
@@ -1553,6 +1615,11 @@ function stateLegend(v){
   if(v==='control'){
     const cs=codes.map(stateControl);
     let html=`<span class="lg"><i class="ramp"></i>Republican to Democratic</span><span class="lg">Color averages the governor, State Senate, and State House equally.</span>`;
+    if(cs.some(c=>c.kind==='X'))html+=item(['D_R'],'Divided: stripes show both parties');
+    if(barsOn()){
+      html+=`<span class="lg">Bars, top to bottom: Governor, State Senate, State House seat split</span>`;
+      if(codes.some(st=>stateBeforeChamber(st,'upper')||stateBeforeChamber(st,'lower')))html+=`<span class="lg">Faded bar: seats from before the election</span>`;
+    }
     if(cs.some(c=>c.score===null&&!c.np))html+=item(['U'],'Undecided');
     if(cs.some(c=>c.undecided.length))html+=`<span class="lg"><i class="sw ov-hatch" style="background-color:var(--mid)"></i>An office is undecided</span>`;
     if(cs.some(c=>c.leading.length))html+=`<span class="lg"><i class="sw ov-dots" style="background-color:var(--mid)"></i>Relies on a result leading, not called</span>`;
@@ -1695,7 +1762,7 @@ function callText(c){
 function ariaFor(view,st,seatId){
   const b=bucket(st),name=stName(st);
   if(isState()&&view!=='governor'){
-    if(view==='control'){const c=stateControl(st);return c.none?`${name}, no state legislature.`:`${name}. ${c.verdict.head} ${c.verdict.sub}`.trim();}
+    if(view==='control'){const c=stateControl(st);return c.none?`${name}, no state legislature.`:`${name}. ${c.verdict.head} ${c.verdict.sub} ${c.kind==='X'?stateHoldsText(c):''}`.replace(/\s+/g,' ').trim();}
     const ch=CH_BY[st];
     if(view==='senate')return ch?`${name} ${ch.upper.label}: ${chamberWords(ch.upper)}`:`${name}, no state legislature`;
     return ch&&ch.lower?`${name} ${ch.lower.label}: ${chamberWords(ch.lower)}`:`${name}, no second chamber`;
@@ -1747,12 +1814,15 @@ function sheetMarkup(view){
       const label=`<text class="lbl part" data-for="${st}" data-st="${st}" data-box="1" x="${g.c[0]}" y="${g.c[1]}">${st}</text>`;
       if(view==='control'&&isState()){
         const c=stateControl(st);
-        seen.shapes+=`<path class="shape${c.none?' hollow':''}" d="${g.d}" style="fill:${stateFill(st)}" ${nav(st,null,g.c[0],g.c[1])} aria-label="${esc(ariaFor(view,st))}"/>`;
+        seen.shapes+=`<path class="shape${c.none?' hollow':''}" d="${g.d}" style="${c.kind==='X'?fillStyle('D_R',view,used):'fill:'+stateFill(st)}" ${nav(st,null,g.c[0],g.c[1])} aria-label="${esc(ariaFor(view,st))}"/>`;
         seen.labels+=label;
         const cover=tok=>{used.add(tok);seen.over+=`<path class="ovl part" data-for="${st}" d="${g.d}" style="fill:url(#p-${view}-${tok})"/>`;};
         if(c.undecided.length)cover('OH');
         if(c.leading.length)cover('OD');
-        if(!STRIP_ONLY(st)){const ch=stateChanges(st);if(ch.length)seen.marks+=star(st,st,g,!ch.some(x=>x.firm),true);}
+        if(!STRIP_ONLY(st)){
+          if(!c.none){const b=stateBarsMarkup(st,used);seen.bars+=`<g class="bars part" data-for="${st}" data-st="${st}" data-h="${b.h}">${b.markup}</g>`;}
+          const ch=stateChanges(st);if(ch.length)seen.marks+=star(st,st,g,!ch.some(x=>x.firm),true);
+        }
         return;
       }
       if(view==='control'){
@@ -1799,7 +1869,7 @@ function buildSheets(){
     if(items.length)items[0].el.setAttribute('tabindex','0');
     el.inert=true;
     sheets.push({view,i,el,inner,svg,items,focusKey:null,filterKey:null,
-      labels:$$('.lbl',svg),bars:$$('.bars',svg),stars:$$('.star',svg),patterns:$$('pattern',svg),
+      labels:$$('.lbl',svg),bars:$$('.bars',svg),stars:$$('.star',svg),patterns:$$('pattern:not([data-bar])',svg),
       shown:false,vbText:null,clipped:false});
   });
 }
@@ -1957,7 +2027,7 @@ function layoutSheetLabels(s,k){
   s.bars.forEach(bg=>{
     const st=bg.getAttribute('data-st'),lab=labelBy[st];
     if(!on||!lab||!lab.show){bg.style.display='none';offsets[st]={x:beside,y:0};return;}
-    const starW=changedSince(st).length?beside:0;
+    const starW=(isState()?stateChanges(st):changedSince(st)).length?beside:0;
     for(const gw of sizes){
       const unit=gw/BAR.w,barH=+bg.getAttribute('data-h')*unit,plate=gw+2*BAR.pad*unit;
       const stack=blockSpot(st,k,Math.max(plate,codeW+2*starW),px+2+barH);
@@ -2365,7 +2435,8 @@ function tileFace(v,st){
     if(v==='control'){
       const c=stateControl(st);
       if(c.none)return {cls:' hollow',style:'',bars:''};
-      return {cls:(c.undecided.length?' ov-hatch':'')+(c.leading.length?' ov-dots':''),style:`background-color:${stateFill(st)}`,bars:''};
+      const split=c.kind==='X';
+      return {cls:(c.undecided.length?' ov-hatch':'')+(c.leading.length?' ov-dots':'')+(split?' sb-split':''),style:split?bgAttr('D_R').style:`background-color:${stateFill(st)}`,bars:barsOn()?stateBarsHTML(st):''};
     }
     const ch=CH_BY[st],tok=chamberToken(v==='senate'?ch&&ch.upper:ch&&ch.lower),bg=bgAttr(tok);
     return {cls:(tok==='none'?' hollow':' '+bg.cls),style:bg.style,bars:''};
@@ -4085,13 +4156,26 @@ function setMode(next,opt){
   renderMap(0);
   placeThumb(0);
   buildIndex();
-  renderMeters(false);
+  // The first render belongs to start(). A later switch counts the meters and figures up, as the first load does.
+  const again=!!$('#meters').firstElementChild;
+  renderMeters(again);
   renderStats();
   renderMethods();
   renderList();
   applyFilters();
+  if(again)statsCountUp();
   afterZoom();
   if(!opt.silent)writeHash(true);
+}
+// The three figures under the meters count up from zero, as the meters' numbers do.
+let cancelStatsCount=null;
+function statsCountUp(){
+  if(cancelStatsCount){cancelStatsCount();cancelStatsCount=null;}
+  if(noMotion())return;
+  const items=$$('#stats .stat b').map(b=>({n:b.lastChild,v:parseInt(String(b.lastChild&&b.lastChild.nodeValue).replace(/,/g,''),10)})).filter(x=>x.n&&x.n.nodeType===3&&isFinite(x.v));
+  if(!items.length)return;
+  items.forEach(x=>{x.n.nodeValue='0';});
+  cancelStatsCount=tween(950,u=>{const e=EASE.out(u);items.forEach(x=>{x.n.nodeValue=int(Math.round(x.v*e));});},()=>{items.forEach(x=>{x.n.nodeValue=int(x.v);});cancelStatsCount=null;});
 }
 // Switching keeps the place: same stop, same state if one is open, same page of plans if that is showing.
 function goMode(next){
