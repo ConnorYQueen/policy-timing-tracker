@@ -1778,7 +1778,7 @@ function overrideDividedHTML(st,slots){
     :cannot?`, so ${on}they cannot override alone${o.of==='present'?' unless opponents are absent':''}.`
     :`, so they cannot override alone yet; seats not called or vacant could change that.`;
   const alt=(o.alt||[]).filter(a=>OVR_WORD[a.frac]).map(a=>`${OVR_WORD[a.frac]} for ${a.what}`);
-  const tail=alt.length?` Other bars: ${alt.join('; ')}.`:'';
+  const tail=alt.length?` Some bills need more: ${alt.join('; ')}.`:'';
   return `<p class="gov-sub ovr-line">${esc(held+' '+bar+end+tail)}</p>`;
 }
 function overrideSourceItem(st){
