@@ -136,7 +136,7 @@ Washington, New Jersey, West Virginia Senate, South Dakota, North Dakota, Vermon
 - Maine House: the two tribal representatives in the data (Houlton Band of Maliseet Indians, Passamaquoddy Tribe) are
   non-voting, hold no geographic district, and are not "unmatched": `NONGEO` in `build.py` names them, `validate.py` lists them
   as a note, and the page labels them in the member list and leaves them out of the party tally and the seat bar (151 voting
-  seats). The Penobscot Nation is in `NONGEO` too but is not in the page's member list.
+  seats). The Penobscot Nation is in `NONGEO` too but is not in the page's member list. Source for "non-voting": Wikipedia's article on the Maine House of Representatives (https://en.wikipedia.org/wiki/Maine_House_of_Representatives), which gives 151 voting members and three nonvoting ones and says the Penobscot Nation withdrew its representative, which is why the data lists two.
 - New Hampshire House floterial districts: see below.
 - Washington, DC and Puerto Rico are out of scope.
 
