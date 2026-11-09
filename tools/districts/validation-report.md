@@ -6,11 +6,11 @@ Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (b
 
 ## Not fully OK
 
-- **NH lower: partial**. 55 of 382 members have no district shape: #13 Belknap 8; #14 Belknap 8; #27 Carroll 7; #28 Carroll 8; #29 Carroll 8; #45 Cheshire 15; #46 Cheshire 15; #47 Cheshire 16; #48 Cheshire 17; #49 Cheshire 18; #50 Cheshire 18; #58 Coos 7; #82 Grafton 17; #83 Grafton 18; #181 Hillsborough 37; #182 Hillsborough 38; #183 Hillsborough 38; #184 Hillsborough 39; #185 Hillsborough 40; #186 Hillsborough 40; #187 Hillsborough 40; #188 Hillsborough 41; #189 Hillsborough 41; #197 Hillsborough 44; #198 Hillsborough 44; #199 Hillsborough 45; #238 Merrimack 25; #239 Merrimack 26; #240 Merrimack 27; #241 Merrimack 27; #242 Merrimack 28; #243 Merrimack 29; #244 Merrimack 30; #320 Rockingham 31; #321 Rockingham 31; #322 Rockingham 32; #323 Rockingham 33; #324 Rockingham 34; #325 Rockingham 35; #326 Rockingham 36 ...
+- **NH lower: partial**. 52 of 382 members have no district shape: #13 Belknap 8; #14 Belknap 8; #27 Carroll 7; #28 Carroll 8; #29 Carroll 8; #45 Cheshire 15; #46 Cheshire 15; #47 Cheshire 16; #48 Cheshire 17; #49 Cheshire 18; #50 Cheshire 18; #58 Coos 7; #82 Grafton 17; #83 Grafton 18; #181 Hillsborough 37; #182 Hillsborough 38; #183 Hillsborough 38; #184 Hillsborough 39; #185 Hillsborough 40; #186 Hillsborough 40; #187 Hillsborough 40; #188 Hillsborough 41; #189 Hillsborough 41; #197 Hillsborough 44; #198 Hillsborough 44; #199 Hillsborough 45; #238 Merrimack 25; #239 Merrimack 26; #240 Merrimack 27; #241 Merrimack 27; #242 Merrimack 28; #243 Merrimack 29; #244 Merrimack 30; #323 Rockingham 33; #324 Rockingham 34; #325 Rockingham 35; #326 Rockingham 36; #327 Rockingham 37; #328 Rockingham 38; #329 Rockingham 39 ...
 
 ## Per state and chamber
 
-`seats` is the chamber size from the page; `polys` the districts drawn; `members` the members in the data (fewer than seats means vacancies); `matched` how many of them sit on a drawn district; `memberless` the drawn districts with nobody in the data; `IoU` how well the districts together cover the page's own state shape; `overlap`/`gap` are the share of the state area covered twice / not covered by any district.
+`seats` is the chamber size from the page; `polys` the districts drawn; `members` the members in the data (fewer than seats means vacancies); `matched` how many of them sit on a drawn district (a New Hampshire floterial district counts); `memberless` the drawn districts with nobody in the data; `IoU` how well the districts together cover the page's own state shape; `overlap`/`gap` are the share of the state area covered twice / not covered by any district.
 
 | state | chamber | seats | polys | members | matched | unmatched | memberless | IoU | overlap | gap | file KB | status |
 |---|---|---:|---:|---:|---:|---:|---|---:|---:|---:|---:|---|
@@ -72,7 +72,7 @@ Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (b
 | ND | lower | 94 | 48 | 94 | 94 | 0 | none | 0.9996 | -0.000% | 0.023% | 65 | OK |
 | NE | single chamber | 49 | 49 | 49 | 49 | 0 | none | 0.9998 | 0.000% | 0.008% | 23 | OK |
 | NH | upper | 24 | 24 | 24 | 24 | 0 | none | 0.9988 | 0.000% | 0.056% | 80 | OK |
-| NH | lower | 400 | 164 | 382 | 327 | 55 | Cheshire 1, Coos 6, Grafton 9, Rockingham 22 | 0.9988 | 0.000% | 0.055% | 80 | partial |
+| NH | lower | 400 | 164 + 2 floterial | 382 | 330 | 52 | Cheshire 1, Coos 6, Grafton 9, Rockingham 22 | 0.9988 | 0.000% | 0.055% | 80 | partial |
 | NJ | upper | 40 | 40 | 40 | 40 | 0 | none | 0.9997 | 0.000% | 0.016% | 86 | OK |
 | NJ | lower | 80 | 40 | 80 | 80 | 0 | none | 0.9997 | 0.000% | 0.016% | 86 | OK |
 | NM | upper | 42 | 42 | 42 | 42 | 0 | none | 0.9999 | 0.000% | 0.003% | 112 | OK |
@@ -116,5 +116,6 @@ Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (b
 
 ## Notes
 
-- ME lower: Brian Reynolds (Houlton Band of Maliseet Indians): non-geographic seat, no district shape
-- ME lower: Aaron Dana (Passamaquoddy Tribe): non-geographic seat, no district shape
+- ME lower: Brian Reynolds (Houlton Band of Maliseet Indians): non-geographic seat (non-voting tribal representative), no district shape; not counted as unmatched
+- ME lower: Aaron Dana (Passamaquoddy Tribe): non-geographic seat (non-voting tribal representative), no district shape; not counted as unmatched
+- NH lower: 2 floterial district(s) drawn as the union of the base districts they overlay: Rockingham 31 = Rockingham 2, Rockingham 3 (2 members); Rockingham 32 = Rockingham 6, Rockingham 7, Rockingham 8 (1 members). 52 members hold 37 other district names that have no shape (floterial districts whose composition is not in tools/districts/nh_floterials.json): Belknap 8, Carroll 7, Carroll 8, Cheshire 15, Cheshire 16, Cheshire 17, Cheshire 18, Coos 7, Grafton 17, Grafton 18, Hillsborough 37, Hillsborough 38, Hillsborough 39, Hillsborough 40, Hillsborough 41, Hillsborough 44, Hillsborough 45, Merrimack 25, Merrimack 26, Merrimack 27, Merrimack 28, Merrimack 29, Merrimack 30, Rockingham 33, Rockingham 34, Rockingham 35, Rockingham 36, Rockingham 37, Rockingham 38, Rockingham 39, Rockingham 40, Strafford 18, Strafford 19, Strafford 20, Strafford 21, Sullivan 7, Sullivan 8

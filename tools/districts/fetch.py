@@ -14,6 +14,8 @@ FILES = {
     'cb_2025_us_sldu_500k': 'GENZ2025/shp/cb_2025_us_sldu_500k.zip',
     'cb_2025_us_sldl_500k': 'GENZ2025/shp/cb_2025_us_sldl_500k.zip',
     'cb_2025_us_state_500k': 'GENZ2025/shp/cb_2025_us_state_500k.zip',
+    # New Hampshire's towns (county subdivisions), only used to read the floterial districts' towns (nh_floterials.json)
+    'cb_2025_33_cousub_500k': 'GENZ2025/shp/cb_2025_33_cousub_500k.zip',
 }
 KEEP = ('.shp', '.shx', '.dbf', '.prj', '.cpg')  # only the pieces pyshp needs
 

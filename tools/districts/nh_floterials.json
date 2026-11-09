@@ -1,0 +1,33 @@
+{
+  "about": "Composition of New Hampshire House floterial districts, read by build.py. A floterial district overlays two or more whole base districts, so its shape is the union of those districts as drawn. Each entry lists the towns the statute names for the district; build.py finds the base districts that hold exactly those towns (Census county subdivisions) and stops if the towns are not a union of whole base districts, if a town is not found, or if `seats` is not the number of members the page lists for the district. Only districts whose composition was read in a source are listed here; the other floterial districts have no shape on the page. Add an entry only after reading the district's row in RSA 662:5 (or the Secretary of State's table) and rerun tools/districts/run.sh.",
+  "sources": {
+    "rsa": {
+      "label": "RSA 662:5, State Representative Districts (copy in the 2024 New Hampshire Revised Statutes)",
+      "url": "https://law.justia.com/codes/new-hampshire/title-lxiii/chapter-662/section-662-5/",
+      "official": "https://gc.nh.gov/rsa/html/lxiii/662/662-5.htm"
+    },
+    "sos": {
+      "label": "New Hampshire Secretary of State, Towns and Wards as Districted for Election Purposes, 2022",
+      "url": "https://www.sos.nh.gov/sites/g/files/ehbemt561/files/inline-documents/sonh/towns-and-wards-as-districted-for-election-purposes-2022-remediated.pdf"
+    },
+    "wiki": {
+      "label": "Wikipedia, Floterial district (example: Rockingham 32)",
+      "url": "https://en.wikipedia.org/wiki/Floterial_district"
+    }
+  },
+  "how-read": "The pages above could not be opened in full when this was built (the session's page fetcher could not resolve any host, and its search allowance ran out after three searches). The rows below were read from the excerpts the searches returned for those pages, and each was then checked against the Census map: the listed towns fall exactly inside whole base districts (Rockingham 31 is base districts 2 and 3; Rockingham 32 is base districts 6, 7 and 8), and the seat counts match the member list. A person with the statute open should confirm the rows before relying on them.",
+  "floterials": {
+    "Rockingham 31": {
+      "seats": 2,
+      "towns": ["Auburn", "Candia", "Chester", "Deerfield"],
+      "sources": ["rsa", "sos"],
+      "read": "RSA 662:5 row for Rockingham district 31, as excerpted by search: Auburn, Candia, Chester, Deerfield; 2 representatives. Secretary of State table, as excerpted: Auburn and Candia are in districts 2 and 31, Chester in 3 and 31. Both agree with the Census map (Auburn, Candia and Deerfield make up base district 2; Chester is base district 3)."
+    },
+    "Rockingham 32": {
+      "seats": 1,
+      "towns": ["Brentwood", "Danville", "Fremont"],
+      "sources": ["rsa", "sos", "wiki"],
+      "read": "RSA 662:5 row for Rockingham district 32, as excerpted by search: Brentwood, Danville, Fremont; 1 representative. Wikipedia's floterial example names the same three towns. The Secretary of State table excerpt put Brentwood in districts 6 and 32, which matches the Census map (Brentwood is base district 6); the same excerpt paired Fremont with district 6 as well, which does not (Fremont is base district 7, Danville 8), so that one detail of the excerpt is treated as garbled. Confirm against the table."
+    }
+  }
+}

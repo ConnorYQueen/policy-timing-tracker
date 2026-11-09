@@ -71,7 +71,7 @@ for (const f of feats) {
   const c = collector();
   d3.geoStream({ type: 'MultiPolygon', coordinates: polys }, (PROJ[f.st] ?? lower48).stream(c.sink));
   if (!c.rings.length) noOutput.push(f.st + ':' + f.code);
-  out.push({ st: f.st, code: f.code, name: f.name, lsad: f.lsad, rings: c.rings });
+  out.push({ st: f.st, code: f.code, name: f.name, lsad: f.lsad, county: f.county, rings: c.rings });
 }
 writeFileSync(outFile, JSON.stringify(out));
 console.log(`projected ${out.length} features (no output: ${noOutput.length ? noOutput.join(' ') : 'none'}) -> ${outFile}`);
