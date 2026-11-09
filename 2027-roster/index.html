@@ -408,6 +408,36 @@ ul,ol{list-style:none}
 .seat-basis{margin:2px 0 4px;font-size:12px;line-height:1.35;color:var(--ink-2)}
 .seat-split{margin-left:7px;font-size:12.5px;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .seat-split.before{opacity:.75;font-style:italic}
+.seat-block{margin:0 -8px;padding:0 8px;border-radius:8px}
+.seat-block+.seat-block::before{content:"";display:block;height:1px;margin:0 0 12px;background:var(--rule)}
+.seat-block:focus{outline:none}
+.seat-block:focus-visible{outline:2px solid var(--ink);outline-offset:0}
+.seat-block.sc-hit,.leg.sc-hit{animation:sc-flash 2.4s ease-out}
+@keyframes sc-flash{0%,30%{background:var(--wash);box-shadow:inset 3px 0 0 var(--ink)}100%{background:transparent;box-shadow:inset 3px 0 0 transparent}}
+@media (prefers-reduced-motion:reduce){.seat-block.sc-hit,.leg.sc-hit{background:var(--wash);box-shadow:inset 3px 0 0 var(--ink)}}
+/* Seat chart: one dot per seat on a semicircle, sorted by party. Sized by viewBox, so it follows the column width. */
+.sc{margin:10px 0 0}
+.sc-wrap{position:relative;width:100%;margin:0 auto}
+.sc-svg{display:block;width:100%;height:auto;overflow:visible}
+.sc-D circle{fill:var(--d)}
+.sc-I circle{fill:var(--i)}
+.sc-R circle{fill:var(--r)}
+.sc-U circle{fill:none;stroke:var(--u);stroke-width:.17}
+.sc-f .sc-D,.sc-f .sc-I,.sc-f .sc-R{opacity:.5}
+.sc-halo,.sc-mark{fill:none;stroke-linecap:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.sc-halo{stroke:var(--paper);stroke-width:5px}
+.sc-mark{stroke:var(--ink);stroke-width:2px}
+.sc-maj{position:absolute;transform:translate(-50%,-100%);font-size:11.5px;line-height:1.2;font-weight:700;white-space:nowrap;pointer-events:none}
+.sc-cap{margin:4px 0 0;font-size:12px;line-height:1.35;color:var(--ink-2);text-align:center;text-wrap:balance}
+.sc-read{display:block;font-weight:700;color:var(--ink)}
+.sc-read:empty{display:none}
+.sc-m circle[data-m]{cursor:pointer}
+.sc-m circle[data-m]:hover,.sc-svg circle.sc-sel{stroke:var(--ink);stroke-width:.2}
+.sc-pre circle,.sc-pre .sc-halo,.sc-pre .sc-mark,.sc-pre .sc-maj{opacity:0}
+.sc-go circle{transform-box:fill-box;transform-origin:center;animation:sc-pop .42s cubic-bezier(.2,.8,.2,1) backwards}
+.sc-go .sc-halo,.sc-go .sc-mark,.sc-go .sc-maj{animation:sc-fade .4s .7s backwards}
+@keyframes sc-pop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
+@keyframes sc-fade{from{opacity:0}to{opacity:1}}
 .key-note{margin-top:10px;font-size:12.5px;line-height:1.4;color:var(--ink-2);max-width:30ch}
 .leg{padding-bottom:8px}
 .leg>summary{cursor:pointer;list-style:none}
@@ -420,7 +450,7 @@ ul,ol{list-style:none}
 .leg-q{flex:1 1 auto;min-width:0;height:32px;padding:0 12px;border:2px solid var(--ink);border-radius:16px;background:transparent;color:inherit;font-size:14px}
 .leg-count{font-size:12.5px;color:var(--ink-2);white-space:nowrap}
 .leg-list{list-style:none;margin:0;padding:0}
-.lrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;padding:5px 4px;border-top:1px solid var(--rule);font-size:14px;content-visibility:auto;contain-intrinsic-size:auto 38px}
+.lrow{display:grid;grid-template-columns:28px minmax(0,1fr) auto;gap:9px;align-items:center;padding:5px 4px;border-top:1px solid var(--rule);font-size:14px;content-visibility:auto;contain-intrinsic-size:auto 28px}
 .lrow[hidden]{display:none}
 .lrow.hit{background:var(--wash);box-shadow:inset 3px 0 0 var(--ink)}
 .lname{font-weight:650;min-width:0;overflow-wrap:anywhere}
@@ -1600,20 +1630,22 @@ function filterLeg(q){
   const n=$$('.lrow:not([hidden])',d).length,c=$('.leg-count',d);
   if(c)c.textContent=v?`${int(n)} ${n===1?'match':'matches'}`:'';
 }
+// Opens a chamber's member list if needed, clears its filter, and brings one member's row to the middle with a highlight.
+function legReveal(ch,idx){
+  const d=$(`#pgState details[data-leg="${ch}"]`);
+  if(!d)return;
+  d.open=true;
+  const q=$('.leg-q',d);
+  if(q&&q.value){q.value='';filterLeg(q);}
+  const row=$(`.lrow[data-i="${idx}"]`,d);
+  if(!row)return;
+  row.scrollIntoView({block:'center',behavior:noMotion()?'auto':'smooth'});
+  row.classList.add('hit');
+  setTimeout(()=>row.classList.remove('hit'),2600);
+}
 function openLegislator(it){
-  openState(it.st);
-  requestAnimationFrame(()=>{
-    const d=$(`#pgState details[data-leg="${it.ch}"]`);
-    if(!d)return;
-    d.open=true;
-    const q=$('.leg-q',d);
-    if(q&&q.value){q.value='';filterLeg(q);}
-    const row=$(`.lrow[data-i="${it.idx}"]`,d);
-    if(!row)return;
-    row.scrollIntoView({block:'center',behavior:noMotion()?'auto':'smooth'});
-    row.classList.add('hit');
-    setTimeout(()=>row.classList.remove('hit'),2600);
-  });
+  openState(it.st,{plain:true});
+  requestAnimationFrame(()=>legReveal(it.ch,it.idx));
 }
 
 /* ---------- State mode: seats in each chamber ---------- */
@@ -1635,7 +1667,7 @@ function seatTally(st,k){
 }
 // Hooks for features that extend a chamber's seat display. Each is its own small function so they can change independently.
 function chamberBarOpts(st,k,t){return {unit:'seats',before:t.basis==='before'};}
-function chamberExtrasHTML(st,k,t){return '';}
+function chamberExtrasHTML(st,k,t){return seatChartHTML(st,k,t);}
 function chamberNoteHTML(st,k,t){return '';}
 function chamberMeterHTML(st,k){
   const t=seatTally(st,k),rec=CH_BY[st]&&CH_BY[st][k];
@@ -1649,8 +1681,10 @@ function chamberMeterHTML(st,k){
     +chamberExtrasHTML(st,k,t)
     +`<p class="seat-basis">${esc(basis)}${t.note?' '+esc(t.note):''}${src.length?` Sources: ${src.join(', ')}.`:''}</p>`+chamberNoteHTML(st,k,t);
 }
+// Each chamber's bar, chart and basis sit in one block, so a click-through from the map can land on it.
 function chamberSeatsHTML(st){
-  const parts=[chamberMeterHTML(st,'upper'),chamberMeterHTML(st,'lower')].filter(Boolean);
+  const blk=(ch,k)=>{const h=chamberMeterHTML(st,k);return h?`<div class="seat-block" data-chamber="${ch}" tabindex="-1" role="group" aria-label="${esc(CH_BY[st][k].label+' seats')}">${h}</div>`:'';};
+  const parts=[blk('u','upper'),blk('l','lower')].filter(Boolean);
   return parts.length?`<section class="group seats-group"><h3>Seats</h3><div class="seats-wrap">${parts.join('')}</div></section>`:'';
 }
 function seatSplitHTML(st,k){
@@ -1659,6 +1693,154 @@ function seatSplitHTML(st,k){
   if(!t||t.basis!=='after')return '';
   const tip=`Democrats ${t.D}, Republicans ${t.R}${t.other?`, other ${t.other}`:''}${t.open?`, not called or vacant ${t.open}`:''}. ${t.noElection?'No election in 2026':t.basis==='after'?'After the election':'Before the election'}.`;
   return `<span class="seat-split${t.basis==='before'?' before':''}" title="${esc(tip)}">${int(t.D)}–${int(t.R)}</span>`;
+}
+
+/* ---------- State mode: seat-by-seat chart (one dot per seat, a semicircle sorted by party) ---------- */
+const SC_UNIT=26,SC_GEO={};
+// Rows of dots on arcs, about one unit apart both ways. Dots come back left to right by angle, so each party fills a wedge.
+function seatChartGeom(n){
+  if(SC_GEO[n])return SC_GEO[n];
+  let k=1,r0=Math.max(.8,(n-1)/Math.PI),best=9;
+  for(let c=1;c<=18;c++){
+    const r=(n-c)/(Math.PI*c)-(c-1)/2;
+    if(r<.7)break;
+    const d=Math.abs(r/(r+c-1)-.42);
+    if(d<best){best=d;k=c;r0=r;}
+  }
+  const rad=[],raw=[],sum=k*r0+k*(k-1)/2;
+  for(let i=0;i<k;i++){rad.push(r0+i);raw.push(n*(r0+i)/sum);}
+  // Seats per row follow the row's length; the largest remainders take the leftovers so the rows add up to n.
+  const cnt=raw.map(Math.floor);
+  let left=n-cnt.reduce((a,x)=>a+x,0);
+  raw.map((x,i)=>[x-Math.floor(x),i]).sort((a,b)=>b[0]-a[0]).forEach(a=>{if(left>0){cnt[a[1]]++;left--;}});
+  const pts=[];
+  let gap=1;
+  rad.forEach((r,i)=>{
+    const m=cnt[i];
+    if(m>1)gap=Math.min(gap,Math.PI*r/(m-1));
+    for(let j=0;j<m;j++){const a=m>1?Math.PI*(1-j/(m-1)):Math.PI/2;pts.push({a,r,x:r*Math.cos(a),y:-r*Math.sin(a)});}
+  });
+  pts.sort((p,q)=>q.a-p.a||p.r-q.r);
+  const R=r0+k-1,rd=.42*gap,pad=rd+.25,W=2*(R+pad),px=Math.min(SC_UNIT,340/W);
+  const rOut=R+rd+.55,cx=W/2,cy=rOut+.2+17/px; // room above the arc for the majority number
+  pts.forEach(p=>{p.cx=(cx+p.x).toFixed(3);p.cy=(cy+p.y).toFixed(3);});
+  return SC_GEO[n]={pts,rd:rd.toFixed(2),W:+W.toFixed(2),H:+(cy+pad).toFixed(2),cx,cy,rIn:Math.max(.2,r0-rd-.45),rOut};
+}
+// Before the election, and in a year with no election, every dot is a member in office, so a dot can name them. Counts that do not match the roster stay anonymous.
+function seatChartMembers(st,ck,t){
+  if(!(t.basis==='before'||t.noElection))return null;
+  const L=LEGS[st],list=L&&L[ck];
+  if(!list)return null;
+  const by={D:[],I:[],R:[]};
+  list.forEach((m,i)=>by[m[1]==='D'||m[1]==='R'?m[1]:'I'].push({i,m}));
+  if(by.D.length!==t.D||by.R.length!==t.R||by.I.length!==t.other)return null;
+  const out={};
+  Object.keys(by).forEach(p=>{
+    by[p].sort((a,b)=>String(a.m[2]).localeCompare(String(b.m[2]),undefined,{numeric:true}));
+    out[p]=by[p].map(x=>({i:x.i,tip:`${x.m[0]}, ${PARTY_WORD[x.m[1]]||'Nonpartisan'}, ${legDistrict(x.m[2])}`}));
+  });
+  return out;
+}
+// Chart for chamberExtrasHTML. The counts are the bar's counts (seatTally), in the bar's order: Democrats, other, not called or vacant, Republicans.
+function seatChartHTML(st,k,t){
+  const rec=CH_BY[st]&&CH_BY[st][k],n=t.D+t.R+t.other+t.open;
+  if(!rec||n<2)return '';
+  const g=seatChartGeom(n),T=Math.floor(n/2)+1,ck=k==='upper'?'u':'l',before=t.basis==='before';
+  const m=clamp(t.D>=t.R?T:n-T,1,n-1),mem=seatChartMembers(st,ck,t);
+  let at=0;
+  const dots=[['D',t.D],['I',t.other],['U',t.open],['R',t.R]].map(([p,c])=>{
+    let s='';
+    for(let i=0;i<c;i++){
+      const q=g.pts[at++],mm=mem&&mem[p]&&mem[p][i];
+      s+=`<circle cx="${q.cx}" cy="${q.cy}" r="${g.rd}"${mm?` data-m="${mm.i}" data-tip="${esc(mm.tip)}"`:mem&&p==='U'?' data-tip="Vacant seat"':''}/>`;
+    }
+    return c?`<g class="sc-${p}">${s}</g>`:'';
+  }).join('');
+  // The majority line sits where the leading side's T-th seat ends, as on the bar.
+  const am=(g.pts[m-1].a+g.pts[m].a)/2,co=Math.cos(am),si=Math.sin(am);
+  const at2=r=>`${(g.cx+r*co).toFixed(3)} ${(g.cy-r*si).toFixed(3)}`,tick=`M${at2(g.rIn)}L${at2(g.rOut)}`;
+  const words=`Democrats ${int(t.D)}, Republicans ${int(t.R)}${t.other?`, other ${int(t.other)}`:''}${t.open?`, not called or vacant ${int(t.open)}`:''}`;
+  const label=`${rec.label} seat chart${before?', before the election':''}. ${words}. A majority is ${int(T)} of ${int(n)} seats.`;
+  const cap=`${before?'Faded: the roster before the election. Each dot is a member in office.':mem?'Each dot is a member in office.':'Each dot is one seat.'} The line marks a majority.${t.open?' Open circles are vacant or not called.':''}${mem?' Hover or select a dot to find the member.':''}`;
+  return `<div class="sc${before?' sc-f':''}${mem?' sc-m':''}"><div class="sc-wrap" style="max-width:${Math.round(g.W*SC_UNIT)}px">
+    <svg class="sc-svg" viewBox="0 0 ${g.W} ${g.H}" role="img" aria-label="${esc(label)}" data-tip="${esc(words+(before?' (before the election)':''))}">${dots}<path class="sc-halo" d="${tick}"/><path class="sc-mark" d="${tick}"/></svg>
+    <b class="sc-maj" aria-hidden="true" style="left:${(100*(g.cx+(g.rOut+.15)*co)/g.W).toFixed(1)}%;top:${(100*(g.cy-(g.rOut+.15)*si)/g.H).toFixed(1)}%">${int(T)}</b></div>
+    <p class="sc-cap">${esc(cap)}<span class="sc-read" aria-live="polite"></span></p>
+  </div>`;
+}
+// A tap on the chart says the party counts (the touch version of the hover tip). A dot that names a member says who it is, is marked, and shows the row in the member list.
+pgState.addEventListener('click',e=>{
+  const sv=e.target.closest&&e.target.closest('.sc-svg');
+  if(!sv)return;
+  const c=e.target.closest('circle[data-m]'),rd=$('.sc-read',sv.closest('.sc')),blk=sv.closest('.seat-block');
+  if(rd)rd.textContent=(c||sv).getAttribute('data-tip');
+  if(!c)return;
+  $$('.sc-sel',pgState).forEach(x=>x.classList.toggle('sc-sel',false));
+  c.classList.add('sc-sel');
+  legReveal(blk.getAttribute('data-chamber'),c.getAttribute('data-m'));
+});
+// Opening a state's page (or switching state) animates the chambers' bars, numbers and dots as each scrolls into view. Nothing replays on a re-render of the same open page.
+let seatObs=null;
+function seatChartPrime(fresh){
+  if(seatObs){seatObs.disconnect();seatObs=null;}
+  const blocks=$$('.seat-block',pgState);
+  if(!fresh||!blocks.length||noMotion()||!('IntersectionObserver' in window))return;
+  const t0=performance.now();
+  seatObs=new IntersectionObserver(es=>es.forEach(e=>{
+    if(!e.isIntersecting)return;
+    seatObs.unobserve(e.target);
+    setTimeout(()=>seatChartRelease(e.target),Math.max(0,230-(performance.now()-t0)));
+  }),{root:pgState,rootMargin:'0px 0px -12% 0px'});
+  blocks.forEach(b=>{
+    $$('.m-num b[data-count]',b).forEach(x=>{x.textContent='0';});
+    [$('.m-bar',b),$('.sc',b)].forEach(x=>{
+      if(!x)return;
+      x.classList.add(x.classList.contains('sc')?'sc-pre':'pre');
+      seatObs.observe(x);
+    });
+  });
+}
+function seatChartRelease(el){
+  if(!el.isConnected)return;
+  if(el.classList.contains('sc')){
+    const cs=$$('.sc-svg circle',el),span=Math.min(750,300+cs.length*3);
+    cs.forEach((c,i)=>{c.style.animationDelay=Math.floor(i*span/cs.length)+'ms';});
+    el.classList.remove('sc-pre');
+    el.classList.add('sc-go');
+    setTimeout(()=>{el.classList.remove('sc-go');cs.forEach(c=>{c.style.animationDelay='';});},span+1500);
+    return;
+  }
+  const nums=$$('.m-num b[data-count]',el.closest('.meter'));
+  tween(950,u=>{const e=EASE.out(u);nums.forEach(n=>{n.textContent=int(Math.round(+n.getAttribute('data-count')*e));});});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>el.classList.remove('pre')));
+}
+// Click-through from the State Senate and State House stops: the chamber whose Seats block the page should open on.
+function seatChamberFor(st,vi){
+  const v=VIEWS[vi],c=CH_BY[st];
+  if(!isState()||!c||(v!=='senate'&&v!=='house'))return null;
+  return v==='senate'?(c.lower?'u':'g'):(c.lower?'l':null);
+}
+// Scrolls the open state page to a chamber's Seats block, opens its member list, flashes the block, and puts focus there.
+function seatChamberOpen(ch,opt){
+  opt=opt||{};
+  const det=$(`details.leg[data-leg="${ch}"]`,pgState),blk=$(`.seat-block[data-chamber="${ch}"]`,pgState);
+  const mark=blk||det,anchor=blk?(ch==='u'?blk.closest('.seats-group'):blk):det;
+  if(det)det.open=true;
+  if(!anchor)return false;
+  const go=()=>{
+    const y=Math.max(0,anchor.getBoundingClientRect().top-pgState.getBoundingClientRect().top+pgState.scrollTop-6);
+    if(opt.smooth&&!noMotion())pgState.scrollTo({top:y,behavior:'smooth'});else pgState.scrollTop=y;
+    return y;
+  };
+  const y0=go();
+  // A late font can move the headings above; if nobody has scrolled since, land again.
+  if(document.fonts&&document.fonts.status==='loading')document.fonts.ready.then(()=>{if(anchor.isConnected&&Math.abs(pgState.scrollTop-y0)<3)go();});
+  mark.classList.remove('sc-hit');
+  void mark.offsetWidth;
+  mark.classList.add('sc-hit');
+  setTimeout(()=>mark.classList.remove('sc-hit'),2400);
+  if(opt.focus)(blk||$('summary',det)).focus({preventScroll:true});
+  return true;
 }
 
 /* ---------- map construction ---------- */
@@ -2933,6 +3115,7 @@ function changedStateText(st){
   return parts.join(' ');
 }
 function renderStatePageState(st){
+  const fresh=!(panel.classList.contains('open')&&panel.dataset.level==='state'&&pgState.dataset.st===st);
   const b=bucket(st),chg=stateChanges(st);
   const ctl=((MEANS[st]&&MEANS[st].items)||[]).find(i=>i.kind==='control');
   const moneyKey=`Money split: share of total raised from individual donors and from PACs. The rest is party money, the candidate's own money, joint fundraising transfers, and other receipts. Years show the reporting period, and "Last campaign" marks senators and governors not on the 2026 ballot.`;
@@ -2953,6 +3136,8 @@ function renderStatePageState(st){
     </div>${chamberSeatsHTML(st)}${gov?`<p class="split-key out-fold">${moneyKey}</p>${gov}`:''}${legislatorsHTML(st)}<div style="height:18px"></div>`;
   pgState.dataset.st=st;
   fitStateName();
+  pgState.scrollTop=0;
+  seatChartPrime(fresh);
 }
 function renderStatePage(st){return isState()?renderStatePageState(st):renderStatePageFed(st);}
 function renderStatePageFed(st){
@@ -3277,14 +3462,18 @@ function openState(st,opt){
   const changed=focus.st!==st||focus.seat!==null;
   const fromSeat=focus.st===st?focus.seat:null;
   const keep=!!fromSeat&&pgState.dataset.st===st;
+  const wasOpen=panel.classList.contains('open')&&panel.dataset.level==='state'&&pgState.dataset.st===st;
+  const chamber=opt.plain?null:seatChamberFor(st,typeof opt.view==='number'?opt.view:stop);
   focus.st=st;focus.seat=null;
-  if(!keep)renderStatePage(st);
+  if(!keep&&!(wasOpen&&isState()))renderStatePage(st); // the same State page, already open, keeps its lists and is not redrawn
   openPanel('state');
   applyFocus(st);
   goView(typeof opt.view==='number'?opt.view:stop,opt.instant,()=>zoomTo(zoomTargetFor(),opt.instant?0:opt.ms===undefined?720:opt.ms));
   syncSelection();
   if(!opt.silent)writeHash(changed);
-  if(opt.focus!==false){
+  // On the State Senate and State House stops the page opens on that chamber's Seats block.
+  const landed=chamber&&seatChamberOpen(chamber,{smooth:wasOpen,focus:opt.focus!==false});
+  if(opt.focus!==false&&!landed){
     // Back from a profile returns to the same place in the list, on the row that was opened.
     const row=keep&&$(`[data-open-seat="${fromSeat}"]`,pgState);
     if(row)row.focus({preventScroll:true});else focusHeading();
@@ -4191,6 +4380,7 @@ function applyHash(instant){
   if(seat&&focus.seat!==seat)openSeat(seat,{view:vi,instant,silent:true,focus:!instant});
   else if(!seat&&st&&(focus.st!==st||focus.seat))openState(st,{view:vi,instant,silent:true,focus:!instant});
   else if(!seat&&!st&&focus.st)goView(vi,instant,()=>closeAll({silent:true,instant,focus:false}));
+  else if(!seat&&st&&st===focus.st&&seatChamberFor(st,vi)){goView(vi,instant);seatChamberOpen(seatChamberFor(st,vi),{smooth:true,focus:!instant});}
   else goView(vi,instant);
   return true;
 }
