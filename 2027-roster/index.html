@@ -3626,7 +3626,7 @@ function renderStateList(){
     const gov=c.none?slotChip(govSlotOf(st)):slotChip(sl.find(x=>x.gov));
     const up=ch?slotChip(sl.find(x=>x.label===ch.upper.label&&!x.gov)):'<span class="pchip none">None</span>';
     const lo=ch&&ch.lower?slotChip(sl.find(x=>x.label===ch.lower.label&&!x.gov)):'<span class="pchip none">'+(ch?'One chamber':'None')+'</span>';
-    const chips=stateChanges(st).map(x=>`<span class="chip flip${x.firm?'':' soft'}">${starSvg('',!x.firm)}${esc(x.label)}: ${esc(flipWords(x.flip))}${x.firm?'':', not called'}</span>`).join('');
+    const chips=stateChanges(st).map(x=>`<span class="chip flip${x.firm?'':' soft'}">${starSvg('',!x.firm)}${esc(x.label)}: ${esc(flipWay(x.flip))}${x.firm?'':', not called'}</span>`).join('');
     return `<tr><td class="cell-seat"><button type="button" class="cell-btn" data-open-state="${esc(st)}"><span>${esc(stName(st))}</span></button></td><td class="cell-lean" data-label="Governor">${gov}</td><td class="cell-lean" data-label="${esc(ch?ch.upper.label:'State Senate')}">${up}</td><td class="cell-lean" data-label="${esc(ch&&ch.lower?ch.lower.label:'State House')}">${lo}</td><td class="cell-lean" data-label="Control">${esc(CONTROL_WORD[c.kind]||'')}</td><td class="cell-notes"><div class="cell-chips">${chips}</div></td></tr>`;
   }).join('');
 }
