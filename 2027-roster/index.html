@@ -404,6 +404,12 @@ ul,ol{list-style:none}
 .gov-row.I{background-color:var(--i-strong);color:var(--on-i)}
 .gov-row.U{background-color:var(--u-strong);color:var(--on-u)}
 .gov-row.np{box-shadow:inset 0 0 0 2px var(--u-strong);color:var(--ink)}
+.pchip{display:inline-flex;align-items:center;height:22px;padding:0 9px;border-radius:11px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.pchip.D{background-color:var(--d-strong);color:var(--on-d)}
+.pchip.R{background-color:var(--r);color:var(--on-r)}
+.pchip.I{background-color:var(--i-strong);color:var(--on-i)}
+.pchip.U{background-color:var(--u-strong);color:var(--on-u)}
+.pchip.none{box-shadow:inset 0 0 0 1.5px var(--u-strong);color:var(--ink-2)}
 .gov-note,.gov-src{margin-top:6px;font-size:12.5px;line-height:1.3;color:var(--ink-2)}
 .gov-src a{font-weight:650;text-decoration-thickness:1.5px;overflow-wrap:anywhere}
 .hero-detail-in,.split-key.in-fold{display:none}
@@ -768,6 +774,7 @@ table.seats{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
   .seats tr:hover td{background:none}
   .seats .cell-party{display:none}
   .seats .cell-status,.seats .cell-notes,.seats .cell-lean{grid-column:2}
+  .seats td[data-label]::before{content:attr(data-label) ": ";font-weight:600;color:var(--ink-2)}
   .cell-lean{min-width:0}
   .lean-pre{display:inline}
   .seats .cell-notes:has(.cell-chips:empty){display:none}
@@ -929,7 +936,7 @@ table.seats{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
 <div class="below">
   <section id="seat-list" aria-label="All seats">
     <div class="list-head">
-      <h2>All seats</h2>
+      <h2 id="listTitle">All seats</h2>
       <p id="listCount" aria-live="polite"></p>
     </div>
     <p class="lean-note" id="leanNote" hidden></p>
@@ -2394,28 +2401,29 @@ function tally(list){
 }
 const sideTotal=x=>x.settled+x.lead+x.same+x.ind+x.indLead;
 const sideFirm=x=>x.settled+x.ind;
-function meterHTML(key,title,list){
+function meterHTML(key,title,list,opts){
+  const ch=!!(opts&&opts.unit==='chambers');
   const t=tally(list),n=t.n,T=Math.floor(n/2)+1;
   const dTot=sideTotal(t.D),rTot=sideTotal(t.R),mid=t.undecided+t.other;
   const segs={l:[],r:[],c:[]};
   let x=0;
   const addL=(c,cls,name)=>{if(!c)return;segs.l.push({left:x/n*100,w:c/n*100,cls,c,name});x+=c;};
-  addL(t.D.settled,'t-D','Democratic, called or not on the ballot');
+  addL(t.D.settled,'t-D',ch?'Democratic control':'Democratic, called or not on the ballot');
   addL(t.D.ind,'t-I','Independent, counted with Democrats');
   addL(t.D.lead,'t-DL','Democratic, leading, not called');
   addL(t.D.indLead,'t-IL','Independent counted with Democrats, leading, not called');
   addL(t.D.same,'t-HD','Democratic same-party contest, person undecided');
   let xr=n;
   const addR=(c,cls,name)=>{if(!c)return;xr-=c;segs.r.push({left:xr/n*100,w:c/n*100,cls,c,name});};
-  addR(t.R.settled,'t-R','Republican, called or not on the ballot');
+  addR(t.R.settled,'t-R',ch?'Republican control':'Republican, called or not on the ballot');
   addR(t.R.ind,'t-I','Independent, counted with Republicans');
   addR(t.R.lead,'t-RL','Republican, leading, not called');
   addR(t.R.indLead,'t-IL','Independent counted with Republicans, leading, not called');
   addR(t.R.same,'t-HR','Republican same-party contest, person undecided');
   let cx=x;
   const addC=(c,cls,name)=>{if(!c)return;segs.c.push({left:cx/n*100,w:c/n*100,cls,c,name});cx+=c;};
-  addC(t.other,'t-I','Independent, no stated caucus');
-  addC(t.undecided,'t-U','Undecided');
+  addC(t.other,'t-I',ch?'Nonpartisan legislature':'Independent, no stated caucus');
+  addC(t.undecided,'t-U',ch?'Not called':'Undecided');
   const all=[...segs.l,...segs.c,...segs.r.slice().reverse()];
   const segHTML=(s,flag)=>`<div class="m-seg ${s.cls}${flag}${(s.w<.9)?' tiny':''}" style="left:${s.left}%;width:${s.w}%" data-tip="${esc(`${int(s.c)} of ${int(n)}: ${s.name}`)}"></div>`;
   const flag=s=>(s===all[0]?' first':'')+(s===all[all.length-1]?' last':'');
@@ -2438,31 +2446,73 @@ function meterHTML(key,title,list){
   }else{
     verdict=`<strong>No party has reached ${int(T)}.</strong> ${int(mid)} undecided.`;
   }
+  if(ch){
+    const dF=sideFirm(t.D),rF=sideFirm(t.R),top=dF>rF?'D':rF>dF?'R':null;
+    const more=top?sideTotal(t[top])-sideFirm(t[top]):0;
+    verdict=top?`<strong>${PARTY_PEOPLE[top]} control the most chambers:</strong> ${int(sideFirm(t[top]))} called${more?`, with ${int(more)} more leading`:''}. ${int(mid)} ${opts.midNote||'not called'}.`
+      :`<strong>Tied on called chambers:</strong> ${int(dF)} each. ${int(mid)} ${opts.midNote||'not called'}.`;
+  }
   const indBits=['D','R'].filter(k=>t[k].indNames.length).map(k=>`Independents ${t[k].indNames.map(esc).join(' and ')} count with ${PARTY_PEOPLE[k]}.`);
   const parts=all.map(s=>`${int(s.c)} ${s.name}`).join('; ');
   const unit=key==='governors'?'governorships':'seats';
   return `<section class="meter" data-meter="${key}">
-    <div class="m-head"><h3>${esc(title)}</h3><span>${int(T)} of ${int(n)} ${unit} for a majority</span></div>
+    <div class="m-head"><h3>${esc(title)}</h3><span>${ch?`${int(n)} chambers`:`${int(T)} of ${int(n)} ${unit} for a majority`}</span></div>
     <div class="m-nums">
       <div class="m-num"><b data-count="${dTot}">${int(dTot)}</b><small><span class="who"><i class="m-key t-D"></i>${name('D')}</span><br>${split(t.D)}</small></div>
-      <div class="m-num mid">${mid?`<b data-count="${mid}">${int(mid)}</b><small>undecided</small>`:'<small>none undecided</small>'}</div>
+      <div class="m-num mid">${mid?`<b data-count="${mid}">${int(mid)}</b><small>${ch?esc(opts.midNote||'not called'):'undecided'}</small>`:`<small>${ch?'none not called':'none undecided'}</small>`}</div>
       <div class="m-num right"><b data-count="${rTot}">${int(rTot)}</b><small><span class="who">${name('R')}<i class="m-key t-R"></i></span><br>${split(t.R)}</small></div>
     </div>
-    <div class="m-bar pre" tabindex="0" role="img" aria-label="${esc(`${title}, ${T} of ${n} for a majority. ${parts}.`)}" data-tip="${esc(parts)}">
+    <div class="m-bar pre" tabindex="0" role="img" aria-label="${esc(ch?`${title}, ${n} chambers. ${parts}.`:`${title}, ${T} of ${n} for a majority. ${parts}.`)}" data-tip="${esc(parts)}">
       <div class="m-side l">${segs.l.map(s=>segHTML(s,flag(s))).join('')}</div>
       <div class="m-side c">${segs.c.map(s=>segHTML(s,flag(s))).join('')}</div>
       <div class="m-side r">${segs.r.map(s=>segHTML(s,flag(s))).join('')}</div>
-      <div class="m-mark" style="left:${markLeft}%"><b>${int(T)}</b></div>
+      ${ch?'':`<div class="m-mark" style="left:${markLeft}%"><b>${int(T)}</b></div>`}
     </div>
     <p class="verdict">${verdict}${indBits.length?`<span class="ind">${indBits.join(' ')}</span>`:''}</p>
+  </section>`;
+}
+
+// Full control: how many states have one party holding the governor's office and both chambers.
+function fullControlMeterHTML(){
+  const codes=Object.keys(byState).filter(st=>stType(st)==='state'),n=codes.length;
+  const cnt={D:0,R:0,X:0,open:0,np:0};
+  codes.forEach(st=>{const k=stateControl(st).kind;cnt[k==='D'||k==='R'||k==='X'||k==='np'?k:'open']++;});
+  const segs=[];let x=0;
+  const add=(c,cls,name)=>{if(!c)return;segs.push({left:x/n*100,w:c/n*100,cls,c,name});x+=c;};
+  add(cnt.D,'t-D','Democratic full control');add(cnt.X,'t-X','Divided');add(cnt.np,'t-I','Nonpartisan legislature');add(cnt.open,'t-U','Not settled');add(cnt.R,'t-R','Republican full control');
+  const seg=(s,i)=>`<div class="m-seg ${s.cls}${i===0?' first':''}${i===segs.length-1?' last':''}${s.w<.9?' tiny':''}" style="left:${s.left}%;width:${s.w}%" data-tip="${esc(`${int(s.c)} of ${int(n)}: ${s.name}`)}"></div>`;
+  const parts=segs.map(s=>`${int(s.c)} ${s.name}`).join('; ');
+  const top=cnt.D>cnt.R?'D':cnt.R>cnt.D?'R':null;
+  const rest=[cnt.X?`${int(cnt.X)} divided`:'',cnt.open?`${int(cnt.open)} not settled`:'',cnt.np?`${int(cnt.np)} with a nonpartisan legislature`:''].filter(Boolean).join(', ');
+  const verdict=top?`<strong>${PARTY_PEOPLE[top]} have full control in more states:</strong> ${int(cnt[top])} to ${int(cnt[top==='D'?'R':'D'])}.`:`<strong>Tied on full control:</strong> ${int(cnt.D)} each.`;
+  return `<section class="meter" data-meter="fullControl">
+    <div class="m-head"><h3>Full control</h3><span>One party holds the governor and both chambers</span></div>
+    <div class="m-nums">
+      <div class="m-num"><b data-count="${cnt.D}">${int(cnt.D)}</b><small><span class="who"><i class="m-key t-D"></i>Democratic</span><br>states</small></div>
+      <div class="m-num mid"><b data-count="${cnt.X}">${int(cnt.X)}</b><small>divided</small></div>
+      <div class="m-num right"><b data-count="${cnt.R}">${int(cnt.R)}</b><small><span class="who">Republican<i class="m-key t-R"></i></span><br>states</small></div>
+    </div>
+    <div class="m-bar pre" tabindex="0" role="img" aria-label="${esc(`Full control in ${n} states. ${parts}.`)}" data-tip="${esc(parts)}">
+      <div class="m-side c">${segs.map(seg).join('')}</div>
+    </div>
+    <p class="verdict">${verdict}${rest?`<span class="ind">${rest}.</span>`:''}</p>
   </section>`;
 }
 function renderMeters(animate){
   const sen=SEATS.filter(s=>s.office==='senate');
   const hou=SEATS.filter(s=>s.office==='house');
   const gov=SEATS.filter(s=>s.office==='governor'&&stType(s.st)==='state');
-  $('#meters').innerHTML=meterHTML('senate','Senate',sen)+meterHTML('house','House',hou)+meterHTML('governors','Governors',gov);
-  $('#meterLegend').innerHTML=
+  if(isState()){
+    const up=CHAMBERS.filter(c=>c.kind!=='lower'),lo=CHAMBERS.filter(c=>c.kind==='lower');
+    $('#meters').innerHTML=fullControlMeterHTML()+meterHTML('stateSenate','State Senates',up,{unit:'chambers',midNote:'not called or nonpartisan'})+meterHTML('stateHouse','State Houses',lo,{unit:'chambers'})+meterHTML('governors','Governors',gov);
+  }else $('#meters').innerHTML=meterHTML('senate','Senate',sen)+meterHTML('house','House',hou)+meterHTML('governors','Governors',gov);
+  if(isState())$('#meterLegend').innerHTML=
+    `<span class="lg"><span class="sws"><i class="sw t-D"></i><i class="sw t-R"></i></span>Called, or one party holds all three</span>`+
+    `<span class="lg"><span class="sws"><i class="sw t-DL"></i><i class="sw t-RL"></i></span>Leading, not called</span>`+
+    `<span class="lg"><span class="sws"><i class="sw t-X"></i></span>Divided</span>`+
+    `<span class="lg"><span class="sws"><i class="sw t-U"></i></span>Not called, or not settled</span>`+
+    `<span class="lg"><span class="sws"><i class="sw t-I"></i></span>Nonpartisan legislature</span>`;
+  else $('#meterLegend').innerHTML=
     `<span class="lg"><span class="sws"><i class="sw t-D"></i><i class="sw t-R"></i></span>Settled: called or not on the ballot</span>`+
     `<span class="lg"><span class="sws"><i class="sw t-DL"></i><i class="sw t-RL"></i></span>Leading, not called</span>`+
     `<span class="lg"><span class="sws"><i class="sw t-HD"></i><i class="sw t-HR"></i></span>Undecided, same party</span>`+
@@ -2480,6 +2530,18 @@ function renderMeters(animate){
   }else release();
 }
 function renderStats(){
+  if(isState()){
+    const codes=Object.keys(byState).filter(st=>stType(st)==='state');
+    const flips=codes.filter(st=>stateChanges(st).length).length;
+    const und=codes.filter(st=>stateControl(st).undecided.length).length;
+    const div=codes.filter(st=>stateControl(st).kind==='X').length;
+    $('#statsHead').textContent=`All ${int(codes.length)} states`;
+    $('#stats').innerHTML=
+      `<button type="button" class="stat" data-go="flips" aria-pressed="${F.flips}"><b>${starSvg()}${int(flips)}</b><small>Changed hands</small></button>`+
+      `<button type="button" class="stat" data-go="und" aria-pressed="${F.party==='U'}"><b><i class="m-key t-U" style="width:13px;height:13px"></i>${int(und)}</b><small>Not settled</small></button>`+
+      `<button type="button" class="stat" data-go="new" aria-pressed="${F.fresh}"><b><i class="m-key t-X" style="width:13px;height:13px"></i>${int(div)}</b><small>Divided</small></button>`;
+    return;
+  }
   const flips=SEATS.filter(s=>s.flip).length;
   const und=SEATS.filter(s=>!s.party).length;
   const fresh=SEATS.filter(s=>s.holder&&s.holder.newToOffice).length;
@@ -2740,7 +2802,42 @@ function stateGovtHTML(st){
       <p class="gov-src">Governor from AP results. Chambers as of ${esc(dayText(G.asOf))}. ${govtSourcesHTML(G)}</p>
     </section>`;
 }
-function renderStatePage(st){
+
+function changedStateText(st){
+  const out=stateChanges(st),c=stateControl(st);
+  if(c.none)return 'No state legislature.';
+  const parts=out.map(x=>{
+    const [a,b]=x.flip.split('>');
+    return `${x.label} ${x.firm?'changed':'could change'} from ${PARTY_WORD[a]} to ${PARTY_WORD[b]}${x.firm?'':', not called yet'}.`;
+  });
+  if(!out.length)parts.push('No office has changed party so far.');
+  if(c.undecided.length)parts.push(`Not called: ${c.undecided.join(', ')}.`);
+  return parts.join(' ');
+}
+function renderStatePageState(st){
+  const b=bucket(st),chg=stateChanges(st);
+  const ctl=((MEANS[st]&&MEANS[st].items)||[]).find(i=>i.kind==='control');
+  const moneyKey=`Money split: share of total raised from individual donors and from PACs. The rest is party money, the candidate's own money, joint fundraising transfers, and other receipts. Years show the reporting period, and "Last campaign" marks senators and governors not on the 2026 ballot.`;
+  const gov=b.governor?`<section class="group"><h3>${st==='DC'?'Mayor':'Governor'}</h3><ul>${personRow(b.governor)}</ul></section>`:'';
+  pgState.innerHTML=`<div class="state-hero">
+      <div class="p-bar"><button type="button" class="p-link" data-close>${BACK_ICON}United States</button><button type="button" class="p-close" data-close aria-label="Close and return to the US map">${CLOSE_ICON}</button></div>
+      <nav class="pane-tabs" aria-label="${esc(stName(st))} sections"><span class="ptab" aria-current="page">State control</span><a class="ptab" href="#state/means/${st}">What this means</a></nav>
+      <div class="hero-cols">
+        <div class="hero-main">
+          <h2 id="stateHeading" tabindex="-1">${stName(st).split(/\s+/).map(w=>`<span>${esc(w)}</span>`).join(' ')}</h2>
+          ${stateGovtHTML(st)||`<p class="state-verdict">State legislatures are not covered for ${esc(stName(st))} yet.</p>`}
+        </div>
+        <div class="hero-side">
+          <div class="blurb"><h3 class="blurb-h">${chg.length?starSvg('blurb-star',!chg.some(x=>x.firm)):''}What changed</h3><p class="blurb-t">${esc(changedStateText(st))}</p></div>
+          ${ctl?`<div class="blurb"><h3 class="blurb-h">What happened</h3><p class="blurb-t">${esc(ctl.text)}</p></div>`:''}
+        </div>
+      </div>
+    </div>${gov?`<p class="split-key out-fold">${moneyKey}</p>${gov}`:''}<div style="height:18px"></div>`;
+  pgState.dataset.st=st;
+  fitStateName();
+}
+function renderStatePage(st){return isState()?renderStatePageState(st):renderStatePageFed(st);}
+function renderStatePageFed(st){
   const b=bucket(st),c=DELEG[st];
   const groups=[];
   if(b.senate.length)groups.push(`<section class="group"><h3>${b.senate.length===1?'Senator':'Senators'}</h3><ul>${b.senate.map(personRow).join('')}</ul></section>`);
@@ -2759,7 +2856,6 @@ function renderStatePage(st){
           <p class="state-verdict">${esc(pillarText(st))}</p>
           ${pillarQualifiers(st).map(q=>`<p class="state-qual">${esc(q)}</p>`).join('')}
           <div class="hero-detail">${detail}</div>
-          ${stateGovtHTML(st)}
         </div>
         <div class="hero-side">
           <div class="blurb"><h3 class="blurb-h">${change.length?starSvg('blurb-star',!change.some(x=>x.firm)):''}What changed</h3><p class="blurb-t">${esc(whatChanged(st))}${controlFlipped(st)?` ${esc(majorityFlipText(st))}`:''}</p></div>
@@ -3114,7 +3210,7 @@ function closeAll(opt){
   tableReturn=null;
   if(fromTable){
     scrollTo({top:fromTable.y,behavior:'auto'});
-    const row=$(`#listBody [data-open-seat="${fromTable.id}"]`);
+    const row=$(`#listBody [data-open-seat="${fromTable.id}"],#listBody [data-open-state="${fromTable.id}"]`);
     if(row)row.focus({preventScroll:true});
     return;
   }
@@ -3500,6 +3596,40 @@ function initSearch(){
 }
 
 /* ---------- list ---------- */
+
+/* ---------- list: State mode lists states ---------- */
+const SEATS_HEAD=$('.seats thead').innerHTML;
+const STATE_HEAD='<tr><th scope="col">State</th><th scope="col">Governor</th><th scope="col">State Senate</th><th scope="col">State House</th><th scope="col">Control</th><th scope="col">Changes</th></tr>';
+const CONTROL_WORD={D:'Democratic full control',R:'Republican full control',X:'Divided',open:'Not settled',np:'Nonpartisan legislature',none:'No state legislature'};
+function govSlotOf(st){
+  const g=bucket(st).governor;
+  if(!g)return null;
+  const firm=(g.status==='called'||g.status==='not_up')&&g.holder;
+  return {label:st==='DC'?'Mayor':'Governor',p:firm?g.party:null,soft:!firm&&g.status==='anticipated'?g.party:null};
+}
+function slotChip(x){
+  if(!x)return '<span class="pchip none">None</span>';
+  const cls=x.np?'I':x.p||x.soft||'U';
+  const text=x.np?'Nonpartisan':x.p?PARTY_WORD[x.p]:x.soft?`${PARTY_WORD[x.soft]}, ahead`:'Not called';
+  return `<span class="pchip ${cls}${!x.np&&!x.p&&x.soft?' ov-dots':''}">${esc(text)}</span>`;
+}
+function renderStateList(){
+  $('.seats thead').innerHTML=STATE_HEAD;
+  $('#leanNote').hidden=true;
+  $('#listTitle').textContent='All states';
+  const codes=stateCodes.filter(st=>stType(st)!=='territory');
+  const view=VIEWS[stop],rows=codes.filter(st=>shapeMatches(view,st));
+  $('#listCount').textContent=anyFilter()?`${int(rows.length)} of ${int(codes.length)} places match the filters.`:`${int(codes.length)} places: 50 states and DC. The filters above the map apply here too.`;
+  $('#listEmpty').hidden=rows.length>0;
+  $('#listBody').innerHTML=rows.map(st=>{
+    const c=stateControl(st),sl=c.slots,ch=CH_BY[st];
+    const gov=c.none?slotChip(govSlotOf(st)):slotChip(sl.find(x=>x.gov));
+    const up=ch?slotChip(sl.find(x=>x.label===ch.upper.label&&!x.gov)):'<span class="pchip none">None</span>';
+    const lo=ch&&ch.lower?slotChip(sl.find(x=>x.label===ch.lower.label&&!x.gov)):'<span class="pchip none">'+(ch?'One chamber':'None')+'</span>';
+    const chips=stateChanges(st).map(x=>`<span class="chip flip${x.firm?'':' soft'}">${starSvg('',!x.firm)}${esc(x.label)}: ${esc(flipWords(x.flip))}${x.firm?'':', not called'}</span>`).join('');
+    return `<tr><td class="cell-seat"><button type="button" class="cell-btn" data-open-state="${esc(st)}"><span>${esc(stName(st))}</span></button></td><td class="cell-lean" data-label="Governor">${gov}</td><td class="cell-lean" data-label="${esc(ch?ch.upper.label:'State Senate')}">${up}</td><td class="cell-lean" data-label="${esc(ch&&ch.lower?ch.lower.label:'State House')}">${lo}</td><td class="cell-lean" data-label="Control">${esc(CONTROL_WORD[c.kind]||'')}</td><td class="cell-notes"><div class="cell-chips">${chips}</div></td></tr>`;
+  }).join('');
+}
 const OFFICE_ORDER={senate:0,governor:1,house:2,delegate:3};
 const LIST_SEATS=SEATS.slice().sort((a,b)=>stName(a.st).localeCompare(stName(b.st))||OFFICE_ORDER[a.office]-OFFICE_ORDER[b.office]||String(a.district||a.class||'').localeCompare(String(b.district||b.class||''),undefined,{numeric:true}));
 /* Leaning: who leads the latest AP count in a race that is not called. Runoffs have no lean, because a first-round lead is not one. */
@@ -3517,6 +3647,8 @@ function leanCell(s){
     +`<span class="lean-sub">${esc(L.leader.last)} leads ${esc(L.second.last)} by ${votes} (${pts}). ${Math.round(L.pctCounted)}% counted.${L.rcv?' Ranked-choice race.':''}</span>`;
 }
 function renderList(){
+  if(isState())return renderStateList();
+  if($('.seats thead').innerHTML!==SEATS_HEAD){$('.seats thead').innerHTML=SEATS_HEAD;$('#listTitle').textContent='All seats';}
   const rows=LIST_SEATS.filter(s=>seatMatches(s));
   $('#listCount').textContent=anyFilter()?`${int(rows.length)} of ${int(LIST_SEATS.length)} seats match the filters.`:`${int(LIST_SEATS.length)} seats. The filters above the map apply here too.`;
   $('#listEmpty').hidden=rows.length>0;
@@ -3553,7 +3685,35 @@ function moneyCoverage(){
   const gov=count(SEATS.filter(s=>s.office==='governor')),fed=count(SEATS.filter(s=>s.office!=='governor'));
   return `Full money breakdown, with sources and top contributors, for ${int(gov.full)} of ${int(gov.n)} governor-level people and ${int(fed.full)} of ${int(fed.n)} federal people.`;
 }
+
+function renderStateMethods(){
+  const bySt=Object.keys(ST_META).filter(st=>ST_META[st].govt&&Array.isArray(ST_META[st].govt.sources)&&ST_META[st].govt.sources.length)
+    .sort((a,b)=>stName(a).localeCompare(stName(b)))
+    .map(st=>`<li><b>${esc(stName(st))}</b>: ${linkList(ST_META[st].govt.sources).join(', ')}</li>`).join('');
+  const sources=(ROSTER.sources||[]).filter(x=>/governor|Washington, D\.C\./i.test(x.label||'')).map(x=>{
+    const u=safeUrl(x.url);
+    return `<li>${u?`<a href="${esc(u)}" target="_blank" rel="noopener noreferrer">${esc(x.label||u)}</a>`:esc(x.label||'')}</li>`;
+  }).join('');
+  $('#methodsBody').innerHTML=`
+    <div><h3>What the State side shows</h3><p>For each state, who holds the governor's office and each chamber of the legislature in 2027, and whether one party holds all three. It covers control only. It does not list individual legislators or seat counts, and it does not say what a legislature will pass.</p></div>
+    <div><h3>What the labels mean</h3>
+      <dl>
+        <dt><span class="pchip D">Full control</span></dt><dd>One party holds the governor's office and both chambers, so it can pass a law without a vote from the other party. Some states require a supermajority for taxes or budgets, which this page does not show.</dd>
+        <dt><span class="pchip U">Divided</span></dt><dd>The governor and the two chambers are not all one party. A bill needs agreement across parties, unless a legislature can override a veto. Veto-override rules differ by state and are not shown.</dd>
+        <dt><span class="pchip U ov-dots">Not settled</span></dt><dd>At least one of the three offices has not been called. Dots mean one party is ahead or held the chamber before. Grey means no result yet.</dd>
+        <dt><span class="pchip I">Nonpartisan</span></dt><dd>Nebraska's one-chamber, 49-seat Legislature is officially nonpartisan, so no party formally controls it.</dd>
+      </dl>
+    </div>
+    <div><h3>How State control is colored</h3><p>Each state's color is the average of three parts: the governor and the two chambers, each counted as 1 for Democratic and 0 for Republican. It is not a seat count. A state with one party in all three is solid blue or red, and a split shows as a shade between.</p></div>
+    <div><h3>What changed</h3><p>A star marks a state where the governor or a chamber moved from one party to the other in this election. A hollow star means the change is not called yet. A tie or a coalition before the election is not counted as a party change.</p></div>
+    <div><h3>Where the data comes from</h3><p>Governors come from the same AP results as the federal side. The AP results used here do not include state legislative races, so the chambers come from published reporting, linked below for each state. They were checked on ${esc(dayText(Object.keys(ST_META).map(st=>ST_META[st].govt&&ST_META[st].govt.asOf).find(Boolean)))} and have not been rechecked since, so a chamber marked not called may have been decided.</p></div>
+    <div><h3>What this means</h3><p>This page lists ballot results and public statements about what the election may change, and what it won't change on its own. Each item links its source. These are stated plans and rules, not predictions.</p></div>
+    <div><h3>Governor sources</h3><ul>${sources}</ul></div>
+    <div><h3>Chamber sources, by state</h3><ul>${bySt}</ul></div>`;
+  $('#foot').textContent=`Governors as of ${stampText(ROSTER.asOf,true)}.${ROSTER.callsAsOf?` Race calls updated ${stampText(ROSTER.callsAsOf)}.`:''} Chambers from reporting as of ${dayText(Object.keys(ST_META).map(st=>ST_META[st].govt&&ST_META[st].govt.asOf).find(Boolean))}.`;
+}
 function renderMethods(){
+  if(isState()){renderStateMethods();return;}
   const meta=GEO.meta||{};
   const redrawn=(meta.redrawn||[]).map(st=>stName(st)).join(', ');
   // Notes meant for whoever builds the page stay out; the rest are for readers.
@@ -3644,21 +3804,37 @@ function meansGroup(cls,title,items,all){
   const count=items.length===all?int(all):`${int(items.length)} of ${int(all)}`;
   return `<section class="mg ${cls}"><h3 class="mg-h">${esc(title)}<small>${count}</small></h3>${items.length?`<ul>${items.map(meansItem).join('')}</ul>`:'<p class="mg-none">Nothing listed here on this topic.</p>'}</section>`;
 }
-function meansPlaceName(code){return code==='US'?'Federal':stName(code);}
+
+function stateOverviewHTML(){
+  const codes=Object.keys(byState).filter(st=>stType(st)==='state'||st==='DC');
+  const by={};
+  codes.forEach(st=>{const k=stateControl(st).kind;(by[k]=by[k]||[]).push(st);});
+  const n=k=>(by[k]||[]).filter(st=>stType(st)==='state').length;
+  const groups=[['D','Democrats hold full control'],['R','Republicans hold full control'],['X','Divided control'],['open','Not settled yet'],['np','Nonpartisan legislature'],['none','No state legislature']].filter(g=>(by[g[0]]||[]).length);
+  const summary=`Democrats hold the governor's office and both chambers in ${int(n('D'))} states and Republicans in ${int(n('R'))}. ${int(n('X'))} are divided and ${int(n('open'))} are not settled${n('np')?', and one has a nonpartisan legislature':''}.`;
+  const asOf=Object.keys(ST_META).map(st=>ST_META[st].govt&&ST_META[st].govt.asOf).find(Boolean);
+  const li=st=>`<li class="mi"><p class="mi-topic"><a href="#state/means/${esc(st)}">${esc(stName(st))}</a></p><p class="mi-text">${esc((MEANS[st]&&MEANS[st].summary)||'')}</p></li>`;
+  return `<p class="means-summary">${esc(summary)}</p>
+    <p class="means-note">Based on published reporting${asOf?` as of ${esc(dayText(asOf))}`:''}. Choose a state above, or open one below, to see what its government may change and what it won't.</p>
+    <div class="means-cols">${groups.map(g=>`<section class="mg"><h3 class="mg-h">${esc(g[1])}<small>${int(by[g[0]].length)}</small></h3><ul>${by[g[0]].map(li).join('')}</ul></section>`).join('')}</div>`;
+}
+function meansPlaceName(code){return code==='US'?(isState()?'All states':'Federal'):stName(code);}
 function renderMeans(){
   const host=$('#meansPage'),code=meansSt;
   const isTerr=code!=='US'&&stType(code)==='territory';
   const entry=MEANS[code]&&typeof MEANS[code]==='object'?MEANS[code]:null;
   const places=stateCodes.filter(st=>stType(st)!=='territory');
-  const options=`<option value="US"${code==='US'?' selected':''}>Federal</option>`+places.map(st=>`<option value="${st}"${st===code?' selected':''}>${esc(stName(st))}</option>`).join('')+(isTerr?`<option value="${code}" selected>${esc(stName(code))}: Not covered yet</option>`:'');
-  const items=entry&&Array.isArray(entry.items)?entry.items.filter(x=>x&&x.text):[];
+  const options=`<option value="US"${code==='US'?' selected':''}>${isState()?'All states':'Federal'}</option>`+places.map(st=>`<option value="${st}"${st===code?' selected':''}>${esc(stName(st))}</option>`).join('')+(isTerr?`<option value="${code}" selected>${esc(stName(code))}: Not covered yet</option>`:'');
+  const overview=isState()&&code==='US';
+  const items=!overview&&entry&&Array.isArray(entry.items)?entry.items.filter(x=>x&&x.text):[];
   const present=TOPIC_ORDER.filter(x=>items.some(i=>i.topic===x));
   items.forEach(i=>{if(i.topic&&present.indexOf(i.topic)<0)present.push(i.topic);});
   if(meansTopic!=='all'&&present.indexOf(meansTopic)<0)meansTopic='all';
   const chips=present.length>1?`<div class="topics" role="group" aria-label="Topic"><button type="button" class="tchip" data-topic="all" aria-pressed="${meansTopic==='all'}">All<small>${int(items.length)}</small></button>${present.map(x=>`<button type="button" class="tchip" data-topic="${esc(x)}" aria-pressed="${meansTopic===x}">${esc(x)}<small>${int(items.filter(i=>i.topic===x).length)}</small></button>`).join('')}</div>`:'';
   const tabs=code==='US'?'':`<nav class="pane-tabs" aria-label="${esc(stName(code))}"><a class="ptab" href="#${routeOf(VIEWS[stop])}/${code}">${esc(stName(code))} ${isState()?'state control':'roster'}</a></nav>`;
   let body;
-  if(isTerr)body='<p class="means-none">Not covered yet.</p><p class="means-note">This page covers the federal government, the 50 states, and DC so far.</p>';
+  if(overview)body=stateOverviewHTML();
+  else if(isTerr)body='<p class="means-none">Not covered yet.</p><p class="means-note">This page covers the federal government, the 50 states, and DC so far.</p>';
   else if(!entry)body=`<p class="means-none">We haven't finished ${code==='US'?'this page':'this state'} yet.</p>`;
   else{
     const when=entry.checked?dayText(entry.checked):'';
@@ -3905,6 +4081,13 @@ function initTheme(){
 /* ---------- global events ---------- */
 function initGlobal(){
   document.addEventListener('click',e=>{
+    const openSt=e.target.closest&&e.target.closest('[data-open-state]');
+    if(openSt){
+      const st=openSt.getAttribute('data-open-state');
+      if(openSt.closest('#listBody'))tableReturn={id:st,y:scrollY};
+      openState(st);
+      return;
+    }
     const open=e.target.closest&&e.target.closest('[data-open-seat]');
     if(open){
       const id=open.getAttribute('data-open-seat'),seat=seatById.get(id);
