@@ -18,15 +18,18 @@ DATA="$WORK/data"
 B="$WORK/build"
 mkdir -p "$DATA" "$B"
 
-echo "== 1. download the Census cartographic boundary files (kept in $DATA, treated as untrusted data)"
+echo "== 1. download the Census cartographic boundary files and the 2026 plans (kept in $DATA, treated as untrusted data)"
 "$PY" -I "$HERE/fetch.py" "$DATA"
 
 echo "== 2. read the page's map and member data"
 "$PY" -I "$HERE/extract_page_data.py" "$PAGE" "$B"
 
-echo "== 3. shapefiles -> lon/lat JSON -> the page's projection"
+echo "== 3. shapefiles -> lon/lat JSON -> (2026 plans swapped in where the map changed) -> the page's projection"
 for layer in state sldu sldl; do
   "$PY" -I "$HERE/read_shp.py" "$layer" "$DATA/cb_2025_us_${layer}_500k/cb_2025_us_${layer}_500k" "$B/ll_${layer}.json"
+done
+"$PY" -I "$HERE/tiger_update.py" "$DATA" "$B"
+for layer in state sldu sldl; do
   node "$HERE/project.mjs" "$B/ll_${layer}.json" "$B/pj_${layer}.json"
 done
 
