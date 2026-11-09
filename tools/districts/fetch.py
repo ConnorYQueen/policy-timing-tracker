@@ -14,6 +14,13 @@ FILES = {
     'cb_2025_us_sldu_500k': 'GENZ2025/shp/cb_2025_us_sldu_500k.zip',
     'cb_2025_us_sldl_500k': 'GENZ2025/shp/cb_2025_us_sldl_500k.zip',
     'cb_2025_us_state_500k': 'GENZ2025/shp/cb_2025_us_state_500k.zip',
+    # The 2026 plans (in effect for the 2026 election cycle) of the state chambers whose map changed since the 2024
+    # session: Michigan Senate, Minnesota and Mississippi both chambers. Full-resolution TIGER/Line files (see tiger_update.py).
+    'tl_2026_26_sldu': 'TIGER2026/SLDU/tl_2026_26_sldu.zip',
+    'tl_2026_27_sldu': 'TIGER2026/SLDU/tl_2026_27_sldu.zip',
+    'tl_2026_27_sldl': 'TIGER2026/SLDL/tl_2026_27_sldl.zip',
+    'tl_2026_28_sldu': 'TIGER2026/SLDU/tl_2026_28_sldu.zip',
+    'tl_2026_28_sldl': 'TIGER2026/SLDL/tl_2026_28_sldl.zip',
 }
 KEEP = ('.shp', '.shx', '.dbf', '.prj', '.cpg')  # only the pieces pyshp needs
 

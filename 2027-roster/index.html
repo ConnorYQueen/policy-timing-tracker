@@ -4232,7 +4232,7 @@ function renderStateMethods(){
   const ovr=overrideMethodsHTML();
   $('#methodsBody').innerHTML=`
     <div><h3>What the State side shows</h3><p>For each state: who holds the governor's office and each chamber of the legislature in 2027, whether one party holds all three, the seat count in each chamber, and the state senators and representatives in office before the Nov. 3 election.</p><p style="margin-top:8px">It does not show the legislators elected on Nov. 3 (they take office in January), campaign money, or what a legislature will pass.</p></div>
-    <div><h3>District maps</h3><p>Open a state at the State Senate or State House stop to see that chamber's districts, colored by the party of the member who held each one before the Nov. 3 election. They show who held a district, not who won it. A district with members of two parties is striped, and one with no member in the Open States data is hatched grey. Shapes are the U.S. Census Bureau's 2025 cartographic boundary files, which carry the 2024 legislative session, simplified for a state-sized map. A state whose map was redrawn since may differ, and these are not for finding which district an address is in. New Hampshire's floterial districts overlay the others and have no Census shape, so those House members are not on the map, and Maine's two tribal representatives have no district.</p></div>
+    <div><h3>District maps</h3><p>Open a state at the State Senate or State House stop to see that chamber's districts, colored by the party of the member who held each one before the Nov. 3 election. They show who held a district, not who won it. A district with members of two parties is striped, and one with no member in the Open States data is hatched grey. Shapes are the U.S. Census Bureau's 2025 cartographic boundary files, which carry the 2024 legislative session, simplified for a state-sized map. Where the Census Bureau's 2026 files show a chamber's plan changed for the 2026 election cycle, the shapes come from those files instead and a note under the key says so; a change a state has not reported to the Census Bureau would not show. These are not for finding which district an address is in. New Hampshire's floterial districts overlay the others and have no Census shape, so those House members are not on the map, and Maine's two tribal representatives have no district.</p></div>
     <div><h3>What the labels mean</h3>
       <dl>
         <dt><span class="pchip D">Full control</span></dt><dd>One party holds the governor's office and both chambers, so it can pass a law without a vote from the other party. Some states require a supermajority for taxes or budgets, which this page does not show.</dd>
@@ -5063,6 +5063,13 @@ function sdKeyItems(){
   if(u.has('VAC'))out.push([['VAC'],'Vacant or not in the data (hatched)','Vacant']);
   return out;
 }
+// Notes under the key. The Census-vintage line comes first; then the state file's own `note` when its districts need
+// explaining (a chamber whose map was redrawn, see tools/districts/README.md); then the notes about members off the map.
+const SD_BOUNDS='Boundaries are U.S. Census Bureau files for the legislative maps states reported for the 2026 election cycle.';
+function sdKeyNotes(){
+  const d=SD_DOCS[SD.st],n=d&&typeof d.note==='string'?d.note.trim():'';
+  return [SD_BOUNDS].concat(n?[n]:[],SD.notes.filter(t=>!/^Boundaries are /.test(t)));
+}
 // The key column: the district key replaces the chamber-control key while the districts are on the map.
 function stateDistrictsLegend(v,base){
   const w=SD.want;
@@ -5071,7 +5078,7 @@ function stateDistrictsLegend(v,base){
     const item=(tk,text)=>`<span class="lg"><span class="sws">${tk.map(x=>swatch(x)).join('')}</span>${text}</span>`;
     return `<span class="lg sd-cap"><span><b>${SD_CAPTION}</b>Each district shows who held it, not who won it.</span></span>`
       +sdKeyItems().map(x=>item(x[0],x[1])).join('')
-      +SD.notes.map(t=>`<span class="lg sd-note">${esc(t)}</span>`).join('');
+      +sdKeyNotes().map(t=>`<span class="lg sd-note">${esc(t)}</span>`).join('');
   }
   if(SD.status==='failed')return base+`<span class="lg sd-note">${SD_FAIL_TEXT}</span>`;
   if(SD.status==='stale')return base+`<span class="lg sd-note">${SD_STALE_TEXT}</span>`;
@@ -5107,7 +5114,7 @@ function stateDistrictsUi(){
     b.classList.toggle('is-note',!ready&&!!note);
     $('.sd-cap',b).textContent=ready?SD_CAPTION:note;
     $('.sd-chips',b).innerHTML=ready?sdKeyItems().map(x=>`<span>${x[0].map(t=>swatch(t)).join('')}${esc(x[2])}</span>`).join(''):'';
-    $('.sd-notes',b).innerHTML=ready?['Each district shows who held it, not who won it.'].concat(sdKeyItems().filter(x=>x[2]==='Split'||x[2]==='Vacant').map(x=>x[1]+'.'),SD.notes).map(t=>`<p>${esc(t)}</p>`).join(''):'';
+    $('.sd-notes',b).innerHTML=ready?['Each district shows who held it, not who won it.'].concat(sdKeyItems().filter(x=>x[2]==='Split'||x[2]==='Vacant').map(x=>x[1]+'.'),sdKeyNotes()).map(t=>`<p>${esc(t)}</p>`).join(''):'';
     $('.sd-notes',b).hidden=true;
     $('.sd-info',b).setAttribute('aria-expanded','false');
     $('.sd-sel',b).textContent=ready?SD_HINT:'';

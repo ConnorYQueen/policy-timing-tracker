@@ -17,13 +17,17 @@ downloads as untrusted data: they are only unpacked and read by pyshp, never exe
 
 | step | script | what it does |
 |---|---|---|
-| 1 | `fetch.py` | downloads `cb_2025_us_sldu_500k`, `cb_2025_us_sldl_500k`, `cb_2025_us_state_500k` (GENZ2025) |
+| 1 | `fetch.py` | downloads `cb_2025_us_sldu_500k`, `cb_2025_us_sldl_500k`, `cb_2025_us_state_500k` (GENZ2025) and the 2026 TIGER/Line plans of the five state chambers whose map changed (below) |
 | 2 | `extract_page_data.py` | reads `geo-data` and `legislator-data` out of `2027-roster/index.html` (read only) |
-| 3 | `read_shp.py`, `project.mjs` | shapefile to lon/lat JSON, then into the page's projection with d3 |
+| 3 | `read_shp.py`, `tiger_update.py`, `project.mjs` | shapefile to lon/lat JSON; the changed chambers' 2026 plans swapped in; then into the page's projection with d3 |
 | 4 | `check_projection.py` | proves the projection against the page's own state shapes |
 | 5 | `build.py` | simplifies, joins to members, writes the 50 files |
 | 6 | `validate.py` | re-reads the files and checks them against the page; writes `validation-report.md` |
 | 7 | `check_spatial.py` | informational: parties on the map cluster the way real legislatures do (shuffle test); writes `spatial-check.md` |
+
+`check_redistricting.py` is a separate check (not part of `run.sh`; it downloads about 140 MB of Census block equivalency
+files): it lists which state chambers have a different plan in the 2026 cycle than in the 2024 cycle. Its result, with the
+sources and what could not be checked, is in `redistricting-check.md`; `NEW_PLANS` in `tiger_update.py` is that list.
 
 `browser_check.mjs` is an optional extra (needs Playwright/Chromium): a real browser parses every path and
 confirms its bounding box and that the label point is inside the fill. The generated output is deterministic;
@@ -66,6 +70,9 @@ median of 0.9995.
   'Berkshire, Hampden, Franklin and Hampshire', ...). For a district nobody holds it is the Census name with
   leading zeros dropped. **Exception: Idaho House.** Members there are listed by seat ('1A', '1B') but the shape is
   district '1', so the key is '1' and `m` lists both members.
+- Optional `note`: one short plain-English sentence about the state's districts (a chamber whose map changed for the 2026
+  cycle), shown in the map key and, on a phone, in the Notes list. Text only (the page escapes it); a missing, blank or
+  non-string note is ignored. Only the three states rebuilt from the 2026 files have one.
 - `h[chamber]` is FNV-1a (32 bit) over the members' district strings in list order, so the page can check the files
   still match its member list:
 
@@ -119,11 +126,19 @@ Washington, New Jersey, West Virginia Senate, South Dakota, North Dakota, Vermon
 ## Caveats
 
 - **Vintage.** Boundaries are the Census 2025 cartographic boundary files, which carry legislative session year
-  **2024** (field `LSY`). They are not necessarily the maps used in the 2026 elections; a state legislative map
-  changed after the 2024 session (by court order, a special session or a referendum) is not reflected, and which
-  states that covers was not checked here. The join is by district name, so a redrawn state would still join but the
-  shapes could be old. For every single-member chamber the polygon count equals the chamber's seat count
-  (table in `validation-report.md`).
+  **2024** (field `LSY`, 2024 for every district of every state). The Census Bureau's 2026 files carry the plans "in
+  effect for the 2026 election cycle" as the states reported them, and say that only Michigan's State Senate and Minnesota's
+  and Mississippi's two chambers changed since the 2024 cycle; comparing the 2024 and 2026 block equivalency files
+  confirms it (`check_redistricting.py`, `redistricting-check.md`). Those five chambers are built from the 2026
+  TIGER/Line files instead (`tiger_update.py`: full-resolution districts clipped to the GENZ2025 shoreline, thinned at
+  about 11 m, then the same simplification as the rest), and their state files carry a `note` for the page's map key and
+  `src` says so. Everything else is the Census's word, which the pipeline cannot check: a map changed after the state
+  reported it to the Census Bureau (for example by a court) would not show. The join is by district name, so a redrawn
+  state would still join with old shapes. For every single-member chamber the polygon count equals the chamber's seat
+  count (table in `validation-report.md`).
+- **Colors in a redrawn chamber.** The page colors a district by the member who held that district number before the
+  election; in a chamber with a new map those members were elected from the earlier lines (Michigan's State Senate), so
+  the color is the earlier holder of the number, not of the new territory. The file's `note` says so.
 - **New Hampshire House is partial.** The Census publishes the 164 non-overlapping districts; the 39 floterial
   districts (e.g. 'Rockingham 31' to 'Rockingham 40', 'Hillsborough 37' to '45') overlay them and have no shape, so
   their 55 members have no district on the map.

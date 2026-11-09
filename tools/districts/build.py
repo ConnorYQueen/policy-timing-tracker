@@ -28,6 +28,21 @@ from pathutil import fmt, join_nums, ring_to_path
 
 SRC = ('U.S. Census Bureau cartographic boundary files, 2025 vintage (GENZ2025; state legislative districts '
        'for the 2024 legislative session year), 1:500,000')
+# States whose plan changed for the 2026 election cycle (tiger_update.py swaps in the Census 2026 shapes for these chambers).
+# Their files carry a short plain-English "note" that the page shows in the map key; the wording is fixed here so a
+# rebuild reproduces it. Sources: redistricting-check.md.
+CHAMBER_NAME = {'u': 'State Senate', 'l': 'State House'}
+SRC_2026 = ' districts from the Census Bureau 2026 TIGER/Line state legislative districts (the plan for the 2026 election cycle), clipped to the same shoreline'
+NOTES = {
+    'MI': ('Michigan’s State Senate was redrawn: a new plan, approved in 2024, applies to the 2026 election and is the one '
+           'drawn here. Each district is colored by who held that district number before the election, who was elected '
+           'from the earlier lines. The State House map is unchanged.'),
+    'MN': ('Minnesota’s State Senate and State House lines were adjusted by a handful of census blocks for 2026; the '
+           'adjusted lines are drawn here.'),
+    'MS': ('Mississippi’s State Senate and State House were redrawn after the 2024 session. The new districts are drawn '
+           'here, each colored by who held that district number before the election, who may have been elected from '
+           'the earlier lines.'),
+}
 
 # ---- SIMPLIFICATION AND PRECISION --------------------------------------------------------------------------
 # The page zooms a state until it fills roughly a 650 x 500 px stage. z = that zoom (screen px per map unit).
@@ -336,12 +351,17 @@ def main():
                 feats[(f['st'], ch)].append(f)
     os.makedirs(args.out, exist_ok=True)
     only = set(args.only.split(',')) if args.only else None
+    overlay_path = f'{args.work}/overlay.json'      # written by tiger_update.py: {"MI": ["u"], ...}
+    overlay = json.load(open(overlay_path)) if os.path.exists(overlay_path) else {}
 
     rows, total = [], 0
     for st in sorted(leg):
         if only and st not in only:
             continue
         doc = {'v': 1, 'src': SRC}
+        if st in overlay:
+            doc['src'] = SRC + '; ' + ' and '.join(CHAMBER_NAME[c] for c in overlay[st]) + SRC_2026
+            doc['note'] = NOTES[st]
         hashes = {}
         for ch in ('u', 'l', 'g'):
             members = leg[st].get(ch)
