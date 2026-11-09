@@ -74,6 +74,14 @@ function rosterHash(list){let x=2166136261;for(const m of list){const s=m[2]+'\n
 // usable when doc.h[ch] === rosterHash(LEG.states[st][ch])
 ```
 
+The page (`2027-roster/index.html`, section "State mode: district map") fetches `legislative-districts/<ST>.json` the first
+time a state is focused in State mode (and prefetches it when the state's panel opens), checks `h[chamber]` with the snippet
+above, and draws the chamber's districts over the state at the State Senate and State House stops: the party of the member
+who held the district before the Nov. 3 election (stripes when its members differ, a grey hatch when `m` is empty). A hash
+that does not match shows "District map not shown: its districts do not match this page's member list" and draws nothing,
+so rerun the build after the member list changes. From `file://` or offline the fetch cannot work, and the key says "District
+map unavailable here; it loads when the page is served over the web."
+
 Draw order: the district shapes do not cover water that the Census district files leave out (Sandusky Bay, Lake
 Pontchartrain, Green Bay, parts of the Great Lakes), while the page's state shapes include some of it, so draw the
 state shape first and the districts over it.

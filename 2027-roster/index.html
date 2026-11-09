@@ -139,6 +139,37 @@ ul,ol{list-style:none}
 .hl-line{fill:none;stroke:var(--ink);stroke-width:2.6px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 .sel-line{fill:none;stroke:var(--ink);stroke-width:2.4px;vector-effect:non-scaling-stroke;stroke-linejoin:round}
 
+/* State mode: district map. Shapes fade in over the focused state, colored by the party of the member before the election. */
+.state-districts{opacity:0}
+.state-districts.on{opacity:1;transition:opacity .35s ease}
+@media (prefers-reduced-motion:reduce){.state-districts.on,.dlbl.sd-in{transition:none;animation:none}}
+.sd{stroke-width:.7px}
+.sd-on .star{display:none}
+.dlbl.sd-in{animation:sd-in .35s ease both}
+@keyframes sd-in{from{opacity:0}}
+.sw.t-VAC{background-color:var(--u-2);background-image:repeating-linear-gradient(45deg,var(--u) 0 1.6px,transparent 1.6px 5px)}
+.legend .sd-cap{flex:1 1 100%;font-size:14px;line-height:1.3;color:var(--ink-2)}
+.legend .sd-cap b{display:block;font-size:16px;line-height:1.25;font-weight:800;color:var(--ink);margin-bottom:2px}
+.legend .sd-note{flex:1 1 100%;font-size:13px;line-height:1.35;font-weight:400;color:var(--ink-2)}
+.sd-badge{position:absolute;left:8px;top:8px;z-index:2;display:flex;flex-direction:column;gap:4px;width:max-content;max-width:min(280px,calc(100% - 16px));padding:6px 10px 7px;border:2px solid var(--ink);border-radius:8px;background:var(--paper);color:var(--ink);box-shadow:3px 3px 0 var(--shadow);font:700 13px/1.25 var(--font);pointer-events:none}
+.sd-badge .sd-row,.sd-badge .sd-notes,.sd-badge .sd-sel{display:none;font-weight:500;font-size:12px;line-height:1.3}
+.sd-badge .sd-notes p+p{margin-top:4px}
+.sd-badge .sd-chips{display:flex;flex-wrap:wrap;gap:2px 10px}
+.sd-badge .sd-chips span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}
+.sd-badge .sd-chips .sw{width:14px;height:10px}
+.sd-badge .sd-info{pointer-events:auto;margin-left:auto;padding:1px 8px;border:1.5px solid var(--ink);border-radius:11px;font:700 11.5px/1.4 var(--font);color:var(--ink);background:var(--paper)}
+.sd-badge .sd-info[aria-expanded="true"]{background:var(--ink);color:var(--paper)}
+.sd-badge.is-note{display:none;font-weight:500}
+@media (max-width:1219px){
+  .sd-badge .sd-row{display:flex;align-items:center;gap:6px}
+  .sd-badge .sd-notes,.sd-badge .sd-sel{display:block}
+  .sd-badge .sd-sel{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+  .sd-badge.is-note{display:flex}
+}
+@media (max-width:899px){
+  .sd-badge{padding:5px 9px 6px;font-size:12px;max-width:calc(100% - 16px);box-shadow:2px 2px 0 var(--shadow)}
+}
+
 /* masthead */
 .masthead{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px}
 .masthead h1{flex:none;font:900 clamp(44px,3.9vw,64px)/.9 var(--font-d);font-stretch:62%;letter-spacing:-.004em;white-space:nowrap}
@@ -2181,9 +2212,11 @@ function afterZoom(){
   const k=scaleK();
   sheets.forEach(s=>{if(s.shown)layoutSheetLabels(s,k);});
   drawDistrictLabels();
+  setTimeout(()=>stateDistrictsSync(true),0);
 }
 function drawDistrictLabels(){
   const host=$('#dlabels');
+  if(isState()){stateDistrictsLabels();return;}
   if(!focus.st||VIEWS[stop]!=='house'||!GEO.states[focus.st]||!vb){host.innerHTML='';return;}
   const k=scaleK(),size=12.5/k;
   let html='';
@@ -2301,6 +2334,7 @@ function setStop(i,opts){
   drawDistrictLabels();
   syncSelection();
   hideTip();clearHighlight();
+  stateDistrictsSync();
 }
 let afterSlide=null,slidingTo=null;
 function stopSlide(){
@@ -2458,7 +2492,7 @@ function stopCaption(v){
 /* ---------- legend, count, strip ---------- */
 function renderLegend(){
   const v=VIEWS[stop];
-  if(isState()&&v!=='governor'){$('#legend').innerHTML=stateLegend(v);return;}
+  if(isState()&&v!=='governor'){$('#legend').innerHTML=stateDistrictsLegend(v,stateLegend(v));return;}
   if(v==='control'){$('#legend').innerHTML=majorityLegend();return;}
   const list=viewSeats(v);
   const item=(tk,text)=>`<span class="lg"><span class="sws">${tk.map(x=>swatch(x)).join('')}</span>${text}</span>`;
@@ -2595,6 +2629,7 @@ function renderFilterTitles(){
 // When a filter matches nothing at this stop, say so and point to where the matches are.
 function renderMapEmpty(){
   const el=$('#mapEmpty'),v=VIEWS[stop];
+  if(isState()&&stateDistrictsHasMatch()){el.hidden=true;el.innerHTML='';return;}
   const count=w=>w==='control'?Object.keys(byState).filter(st=>shapeMatches('control',st)).length:viewSeats(w).filter(s=>seatMatches(s)).length;
   if(!anyFilter()||count(v)>0){el.hidden=true;el.innerHTML='';return;}
   const where=[1,2,3].filter(i=>VIEWS[i]!==v).map(i=>({i,n:count(VIEWS[i])})).filter(x=>x.n);
@@ -2645,6 +2680,7 @@ function applyFilters(){
   renderMapEmpty();
   renderList();
   renderStats();
+  stateDistrictsDim();
 }
 function initFilters(){
   $('#fParty').addEventListener('click',e=>{
@@ -3418,6 +3454,7 @@ function applyFocus(st){
     b.classList.toggle('sel',on);
     if(on)b.setAttribute('aria-current','true');else b.removeAttribute('aria-current');
   });
+  stateDistrictsSync();
 }
 function syncSelection(){
   const sl=$('#selLine'),sh=$('#selHalo'),dl=$('#selSeatLine'),dh=$('#selSeatHalo');
@@ -4005,7 +4042,8 @@ function renderStateMethods(){
   }).join('');
   const ovr=overrideMethodsHTML();
   $('#methodsBody').innerHTML=`
-    <div><h3>What the State side shows</h3><p>For each state: who holds the governor's office and each chamber of the legislature in 2027, whether one party holds all three, the seat count in each chamber, and the state senators and representatives in office before the Nov. 3 election.</p><p style="margin-top:8px">It does not show district maps, the legislators elected on Nov. 3 (they take office in January), campaign money, or what a legislature will pass.</p></div>
+    <div><h3>What the State side shows</h3><p>For each state: who holds the governor's office and each chamber of the legislature in 2027, whether one party holds all three, the seat count in each chamber, and the state senators and representatives in office before the Nov. 3 election.</p><p style="margin-top:8px">It does not show the legislators elected on Nov. 3 (they take office in January), campaign money, or what a legislature will pass.</p></div>
+    <div><h3>District maps</h3><p>Open a state at the State Senate or State House stop to see that chamber's districts, colored by the party of the member who held each one before the Nov. 3 election. They show who held a district, not who won it. A district with members of two parties is striped, and one with no member in the Open States data is hatched grey. Shapes are the U.S. Census Bureau's 2025 cartographic boundary files, which carry the 2024 legislative session, simplified for a state-sized map. A state whose map was redrawn since may differ, and these are not for finding which district an address is in. New Hampshire's floterial districts overlay the others and have no Census shape, so those House members are not on the map, and Maine's two tribal representatives have no district.</p></div>
     <div><h3>What the labels mean</h3>
       <dl>
         <dt><span class="pchip D">Full control</span></dt><dd>One party holds the governor's office and both chambers, so it can pass a law without a vote from the other party. Some states require a supermajority for taxes or budgets, which this page does not show.</dd>
@@ -4236,7 +4274,7 @@ function syncModeUi(){
   $('#fNew').textContent=st?'Divided only':'New members only';
   const kn=$('#keyNote');
   kn.hidden=!st;
-  kn.textContent=st?"Covered: who controls the governor's office and each chamber, seat counts, and members in office before the Nov. 3 election. Not covered: district maps, the legislators elected Nov. 3, or campaign money.":'';
+  kn.textContent=st?"Covered: who controls the governor's office and each chamber, seat counts, members in office before the Nov. 3 election, and each chamber's districts by the party of the member before the election. Not covered: the legislators elected Nov. 3, or campaign money.":'';
   $$('#fStatus option').forEach(o=>{
     const off=st&&(o.value==='runoff'||o.value==='not_up');
     o.hidden=off;o.disabled=off;
@@ -4276,6 +4314,7 @@ function setMode(next,opt){
   applyFilters();
   if(again)statsCountUp();
   afterZoom();
+  stateDistrictsSync();
   if(!opt.silent)writeHash(true);
 }
 // The three figures under the meters count up from zero, as the meters' numbers do.
@@ -4530,6 +4569,387 @@ function zoomTargetFor(){
     }
   }
   return stg?fitBox(stg.b,pad,vis):usBox();
+}
+
+/* ---------- State mode: district map ---------- */
+// legislative-districts/<ST>.json holds the Census shape of every district of a state, each linked to the members who held it
+// before the Nov. 3 election. At the State Senate and State House stops, a focused state shows that chamber's districts
+// over the state, colored by those members' party. A file loads the first time its state is focused.
+const SD_DOCS={},SD_WAIT={},SD_FAIL={},SD_OK={};
+const SD={want:null,status:'none',g:null,sheet:null,st:null,ch:null,view:null,items:[],used:new Set(),notes:[],ind:'Independent',unmatched:0,sel:null,fresh:false,legKey:'none|0|',pending:false,last:null};
+const SD_CAPTION='Party of the member before the Nov. 3 election';
+const SD_FAIL_TEXT='District map unavailable here; it loads when the page is served over the web.';
+const SD_STALE_TEXT='District map not shown: its districts do not match this page’s member list.';
+const SD_HINT='Select a district to find its member.';
+const SD_ORDER={D:0,R:1,I:2};
+const sdTok=p=>p==='D'||p==='R'?p:'I';
+const sdWord=p=>p==='N'?'Nonpartisan':(PARTY_WORD[p]||'Independent');
+const sdName=k=>/^\d+[A-Za-z]?$|^[A-Z]$/.test(k)?'District '+k:k;
+function sdToken(mem){
+  const t=Array.from(new Set(mem.map(m=>sdTok(m[1])))).sort((a,b)=>SD_ORDER[a]-SD_ORDER[b]);
+  return !t.length?'VAC':t.length===1?t[0]:t[0]+'_'+t[1];
+}
+// FNV-1a over the members' district strings, as the files were built (tools/districts/README.md).
+function sdHash(list){let x=2166136261;for(const m of list){const s=m[2]+'\n';for(let i=0;i<s.length;i++){x^=s.charCodeAt(i);x=Math.imul(x,16777619)>>>0;}}return x;}
+// The chamber's file key: u, l, or g (Nebraska's one chamber). No second chamber, no map.
+function sdChamber(st,view){
+  const L=LEGS[st],c=CH_BY[st];
+  if(!L||!c)return null;
+  if(view==='senate')return L.g&&L.g.length?'g':(L.u&&L.u.length?'u':null);
+  return c.lower&&L.l&&L.l.length?'l':null;
+}
+function stateDistrictsWant(){
+  if(!isState())return null;
+  const st=focus.st,view=VIEWS[stop];
+  if(!st||stType(st)!=='state'||!GEO.states[st]||(view!=='senate'&&view!=='house'))return null;
+  const ch=sdChamber(st,view);
+  return ch?{st,view,ch}:null;
+}
+// 1 when the file is loaded and matches the member list, -1 when it is loaded and does not, 0 when it is not here.
+function sdReady(st,ch){
+  const doc=SD_DOCS[st];
+  if(!doc)return 0;
+  const k=st+ch;
+  if(!(k in SD_OK)){
+    // The member list must match the file, and every district must be a plain path with in-range member indices.
+    const list=LEGS[st][ch],m=doc[ch];
+    SD_OK[k]=!!(doc.v===1&&m&&typeof m==='object'&&doc.h&&doc.h[ch]===sdHash(list)&&Object.keys(m).every(key=>{
+      const g=m[key];
+      return g&&typeof g.d==='string'&&!/[^MmLlHhVvZzCcSsQqTtAa0-9eE.,\s+-]/.test(g.d)&&Array.isArray(g.c)&&g.c.length===2&&Array.isArray(g.b)&&g.b.length===4&&Array.isArray(g.m)&&g.m.every(i=>Number.isInteger(i)&&i>=0&&i<list.length);
+    }));
+  }
+  return SD_OK[k]?1:-1;
+}
+function stateDistrictsFetch(st){
+  if(SD_DOCS[st]||SD_WAIT[st]||SD_FAIL[st])return;
+  // A page opened from a file cannot fetch its neighbors. Say so without a failed request in the console.
+  if(location.protocol==='file:'||typeof fetch!=='function'){SD_FAIL[st]=1;return;}
+  SD_WAIT[st]=1;
+  fetch('legislative-districts/'+st+'.json')
+    .then(r=>r.ok?r.json():Promise.reject(r.status))
+    .then(doc=>{if(doc&&typeof doc==='object')SD_DOCS[st]=doc;else SD_FAIL[st]=1;},()=>{SD_FAIL[st]=1;})
+    .then(()=>{delete SD_WAIT[st];stateDistrictsSync();});
+}
+// The map waits for a zoom or a wipe to finish, so it never draws at the wrong scale.
+function sdSettled(){
+  if(stage.classList.contains('zooming'))return false;
+  if(slidingTo===null)return true;
+  const t=zoomTargetFor();
+  return !!vb&&Math.abs(vb[2]-t[2])<.02*t[2]&&Math.abs(vb[0]-t[0])<.02*t[2]&&Math.abs(vb[1]-t[1])<.02*t[3];
+}
+// Everything here follows from the page's own state (mode, stop, focused state, files in memory), so it can be called at any time.
+function stateDistrictsSync(now){
+  const w=stateDistrictsWant();
+  if(isState()&&focus.st&&stType(focus.st)==='state'){
+    // A state that failed to load gets another try the next time it is opened.
+    if(SD.last!==focus.st)delete SD_FAIL[focus.st];
+    SD.last=focus.st;
+    stateDistrictsFetch(focus.st);
+  }
+  let status='none';
+  if(w){const r=sdReady(w.st,w.ch);status=r>0?'ready':r<0?'stale':SD_FAIL[w.st]?'failed':'loading';}
+  if(!focus.st)SD.last=null;
+  SD.want=w;
+  const sheet=sheets[stop];
+  const fits=!!(SD.g&&SD.g.isConnected&&w&&status==='ready'&&SD.sheet===sheet&&SD.st===w.st&&SD.ch===w.ch&&SD.view===w.view);
+  if(SD.g&&!fits)stateDistrictsClear();
+  if(fits){stateDistrictsTabs();stateDistrictsPlace();}
+  else if(status==='ready'&&sdSettled()){
+    if(now)stateDistrictsDraw(w);
+    else if(!SD.pending){SD.pending=true;queueMicrotask(()=>{SD.pending=false;stateDistrictsSync(true);});}
+  }
+  SD.status=status;
+  stateDistrictsUi();
+}
+function stateDistrictsClear(){
+  const g=SD.g,s=SD.sheet;
+  if(g){
+    g.remove();
+    if(s)s.el.classList.remove('sd-on');
+    // The state's own shape takes back its place in the tab order.
+    if(s&&sheets.indexOf(s)>=0&&s.items.length&&s.items.every(it=>it.el.getAttribute('tabindex')!=='0')){
+      const own=s.items.find(it=>it.st===focus.st)||s.items[0];
+      rove(s,own.el);
+    }
+    hideTip();clearHighlight();
+  }
+  if(SD.sel!==null){$('#selSeatLine').setAttribute('hidden','');$('#selSeatHalo').setAttribute('hidden','');}
+  SD.g=null;SD.sheet=null;SD.items=[];SD.sel=null;SD.used=new Set();
+  stateDistrictsLabels();
+}
+// One tab stop for the whole map, as on the federal map: the state's own shape (under the districts) steps aside.
+function stateDistrictsTabs(){
+  if(!SD.g)return;
+  const own=SD.sheet&&SD.sheet.items.find(it=>it.st===SD.st);
+  if(own&&own.el.getAttribute('tabindex')==='0')own.el.setAttribute('tabindex','-1');
+  if(SD.items.length&&SD.items.every(it=>it.el.getAttribute('tabindex')!=='0'))SD.items[0].el.setAttribute('tabindex','0');
+}
+const SD_VAC='<rect width="'+HATCH+'" height="'+HATCH+'" style="fill:var(--u-2)"/><rect width="1.6" height="'+HATCH+'" style="fill:var(--u)"/>';
+function sdPattern(sheet,tok){
+  const id=`p-${sheet.view}-${tok}`;
+  if(sheet.svg.querySelector('#'+id))return;
+  const defs=sheet.svg.querySelector('defs');
+  if(!defs)return;
+  defs.insertAdjacentHTML('beforeend',tok==='VAC'?`<pattern id="${id}" patternUnits="userSpaceOnUse" width="${HATCH}" height="${HATCH}" data-rot="45" data-kind="tex">${SD_VAC}</pattern>`:patternMarkup(sheet.view,tok));
+  const p=defs.lastElementChild;
+  if(p&&sheet.patterns.indexOf(p)<0)sheet.patterns.push(p);
+  if(vb)updatePatterns(sheet,scaleK());
+}
+function stateDistrictsDraw(w){
+  const sheet=sheets[stop],overs=sheet&&$('.overs',sheet.svg);
+  if(!overs)return;
+  const st=w.st,ch=w.ch,view=w.view,map=SD_DOCS[st][ch],list=LEGS[st][ch];
+  const place=stName(st)+' '+legLabel(st,ch);
+  const used=new Set(),items=[],seen=new Set(),inds=new Set();
+  let html='';
+  Object.keys(map).forEach((key,n)=>{
+    const g=map[key],idx=g.m||[],mem=idx.map(i=>list[i]).filter(Boolean),tok=sdToken(mem),name=sdName(key);
+    idx.forEach(i=>seen.add(i));
+    mem.forEach(m=>{if(sdTok(m[1])==='I')inds.add(m[1]);});
+    used.add(tok);
+    const who=mem.map(m=>`${m[0]}, ${sdWord(m[1])}`).join('; ');
+    const aria=`${place}, ${name}: ${mem.length?`${who}, ${mem.length>1?'members':'member'} before the election`:'no member in the data'}`;
+    const fill=tok==='D'||tok==='R'||tok==='I'?'fill:'+INK[tok]:`fill:url(#p-${view}-${tok})`;
+    html+=`<path class="shape dist sd" d="${g.d}" style="${fill}" data-n="${n}" role="button" tabindex="-1" aria-label="${esc(aria)}"/>`;
+    items.push({n,key,name,m:idx,mem,parties:mem.map(m=>m[1]),c:g.c,b:g.b,text:key.length<=3?key:'',tok,place,el:null});
+  });
+  used.forEach(t=>{if(t==='VAC'||t.indexOf('_')>0)sdPattern(sheet,t);});
+  overs.insertAdjacentHTML('afterend',`<g class="state-districts" role="group" aria-label="${esc(place)} districts. Arrow keys move between districts. Enter shows the member in the list.">${html}</g>`);
+  const g=overs.nextElementSibling;
+  if(!g||!g.classList.contains('state-districts'))return;
+  $$('path.sd',g).forEach((p,i)=>{items[i].el=p;});
+  sheet.el.classList.add('sd-on');
+  SD.g=g;SD.sheet=sheet;SD.st=st;SD.ch=ch;SD.view=view;SD.items=items;SD.used=used;SD.sel=null;SD.fresh=true;
+  SD.ind=inds.size>1?'Independent or nonpartisan':inds.has('N')?'Nonpartisan':'Independent';
+  SD.unmatched=list.length-seen.size;
+  const notes=['Boundaries are U.S. Census Bureau files for the 2024 legislative session. They may differ from maps redrawn since.'];
+  if(st==='NH'&&ch==='l')notes.push(`Floterial districts overlay these and are not drawn: the Census publishes no shapes for 39 of them, so ${int(SD.unmatched)} members are not on the map.`);
+  else if(st==='ME'&&ch==='l')notes.push('Two tribal representatives have no district on the map.');
+  else if(SD.unmatched>0)notes.push(`${int(SD.unmatched)} members are not on the map.`);
+  SD.notes=notes;
+  g.addEventListener('click',e=>{const it=sdItem(e);if(!it)return;e.stopPropagation();stateDistrictsPick(it);});
+  g.addEventListener('pointermove',e=>{
+    if(e.pointerType&&e.pointerType!=='mouse')return;
+    const it=sdItem(e);
+    if(!it)return;
+    e.stopPropagation();
+    highlightPath(it.el.getAttribute('d'));
+    showTip(sdTipFor(it),e.clientX,e.clientY);
+  });
+  g.addEventListener('focusin',e=>{
+    const it=sdItem(e);
+    if(!it)return;
+    sdRove(it);
+    highlightPath(it.el.getAttribute('d'));
+    if(lastPointer==='keyboard'||e.target.matches(':focus-visible')){
+      const r=it.el.getBoundingClientRect();
+      showTip(sdTipFor(it),r.left+r.width/2,r.top+Math.min(r.height/2,60));
+    }
+  });
+  g.addEventListener('keydown',e=>{
+    const it=sdItem(e);
+    if(!it)return;
+    if(e.key==='Enter'||e.key===' '){e.preventDefault();lastPointer='keyboard';stateDistrictsPick(it);return;}
+    if(e.key==='Home'||e.key==='End'){
+      e.preventDefault();
+      const t=SD.items[e.key==='Home'?0:SD.items.length-1];
+      sdRove(t);t.el.focus({preventScroll:true});
+      return;
+    }
+    const dir={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]}[e.key];
+    if(!dir)return;
+    e.preventDefault();
+    let best=null,bs=Infinity;
+    SD.items.forEach(o=>{
+      if(o===it)return;
+      const dx=o.c[0]-it.c[0],dy=o.c[1]-it.c[1],along=dx*dir[0]+dy*dir[1];
+      if(along<=.001)return;
+      const score=along+(Math.abs(dx*dir[1])+Math.abs(dy*dir[0]))*2.1;
+      if(score<bs){bs=score;best=o;}
+    });
+    if(best){sdRove(best);best.el.focus({preventScroll:true});}
+  });
+  stateDistrictsTabs();
+  stateDistrictsDim();
+  if(noMotion())g.classList.add('on');
+  else requestAnimationFrame(()=>requestAnimationFrame(()=>g.classList.add('on')));
+  stateDistrictsLabels();
+}
+const sdItem=e=>{const p=e.target.closest&&e.target.closest('path.sd');return p&&SD.g&&SD.g.contains(p)?SD.items[+p.getAttribute('data-n')]:null;};
+function sdRove(it){
+  SD.items.forEach(x=>{if(x.el.getAttribute('tabindex')==='0')x.el.setAttribute('tabindex','-1');});
+  it.el.setAttribute('tabindex','0');
+}
+function sdTipFor(it){
+  const key='sd'+SD.st+SD.ch+it.n;
+  if(tipKey===key)return null;
+  tipKey=key;
+  const rows=it.mem.map(m=>`<span><i style="background:${INK[sdTok(m[1])]}"></i>${esc(m[0])}, ${esc(sdWord(m[1]))}</span>`).join('');
+  return `<strong class="tt-name">${esc(it.name)}</strong><span class="tt-line">${esc(it.place)}</span>`+(rows?`<span class="tt-rows">${rows}</span><span class="tt-line">${it.mem.length>1?'Members':'Member'} before the election</span>`:'<span class="tt-line">No member in the data</span>');
+}
+// Party filters dim the districts that do not match. Not called or vacant means a district with no member.
+function sdMatcher(){
+  const c=CH_BY[SD.st],rec=c&&(SD.view==='senate'?c.upper:c.lower),chamberOk=!rec||seatMatches(rec,true);
+  return it=>chamberOk&&(F.party==='all'||(F.party==='U'?!it.parties.length:it.parties.some(p=>p===F.party||(F.party==='I'&&p==='N'))));
+}
+function stateDistrictsDim(){
+  if(!SD.g)return;
+  const on=sdMatcher();
+  SD.items.forEach(it=>it.el.classList.toggle('dim',!on(it)));
+}
+// While some district matches the filters, the page's "nothing here matches" card (which counts chambers) stays out of the way.
+const stateDistrictsHasMatch=()=>!!(SD.g&&SD.g.isConnected&&anyFilter()&&SD.items.some(sdMatcher()));
+// A district's number, drawn where the district is big enough to hold it. State mode owns this layer.
+function stateDistrictsLabels(){
+  const host=$('#dlabels');
+  if(!SD.g||!SD.g.isConnected||SD.sheet!==sheets[stop]||!vb){host.innerHTML='';return;}
+  const k=scaleK(),small=box.w<620,size=(small?10.5:12)/k,anim=SD.fresh&&!noMotion();
+  SD.fresh=false;
+  const area=it=>(it.b[2]-it.b[0])*(it.b[3]-it.b[1]),placed=[];
+  let html='';
+  // The biggest districts name themselves first; a number that would run into one already placed is left out.
+  SD.items.filter(it=>it.text).sort((a,b)=>area(b)-area(a)).forEach(it=>{
+    const b=it.b,w=(b[2]-b[0])*k,h=(b[3]-b[1])*k,tw=it.text.length*size*k*.62+3,th=size*k*1.05;
+    if(w<tw+5||h<th+3)return;
+    if(it.c[0]<vb[0]||it.c[0]>vb[0]+vb[2]||it.c[1]<vb[1]||it.c[1]>vb[1]+vb[3])return;
+    const x=it.c[0]*k,y=it.c[1]*k;
+    if(placed.some(q=>Math.abs(x-q[0])<(tw+q[2])/2&&Math.abs(y-q[1])<(th+q[3])/2))return;
+    placed.push([x,y,tw,th]);
+    html+=`<text class="dlbl${anim?' sd-in':''}" x="${it.c[0]}" y="${it.c[1]}" font-size="${size.toFixed(3)}" stroke-width="${(2.2/k).toFixed(3)}">${esc(it.text)}</text>`;
+  });
+  host.innerHTML=html;
+}
+// Bring the members of a district up in the state panel's list, without rendering the page again.
+function stateDistrictsFocusMember(st,ch,idxs){
+  if(pgState.dataset.st!==st)return false;
+  const d=$(`details[data-leg="${ch}"]`,pgState);
+  if(!d)return false;
+  d.open=true;
+  const q=$('.leg-q',d);
+  if(q&&q.value){q.value='';filterLeg(q);}
+  const rows=idxs.map(i=>$(`.lrow[data-i="${i}"]`,d)).filter(Boolean);
+  if(!rows.length)return false;
+  const toRow=smooth=>{
+    const r=rows[0].getBoundingClientRect(),c=pgState.getBoundingClientRect();
+    const top=Math.max(0,pgState.scrollTop+(r.top-c.top)-(c.height-r.height)/2);
+    if(smooth)pgState.scrollTo({top,behavior:noMotion()?'auto':'smooth'});
+    else if(Math.abs(top-pgState.scrollTop)>8)pgState.scrollTo({top,behavior:'auto'});
+  };
+  toRow(true);
+  // Rows far down are laid out as they come into view, so the first aim can be a little off.
+  setTimeout(()=>toRow(false),noMotion()?60:520);
+  rows.forEach(r=>{
+    r.classList.add('hit');
+    clearTimeout(r._sdT);
+    r._sdT=setTimeout(()=>r.classList.remove('hit'),2600);
+  });
+  return true;
+}
+function stateDistrictsPick(it){
+  if(!SD.g)return;
+  const st=SD.st,ch=SD.ch;
+  if(panel.dataset.level==='seat'||pgState.dataset.st!==st)openState(st,{focus:false});
+  const d=it.el.getAttribute('d'),dl=$('#selSeatLine'),dh=$('#selSeatHalo');
+  dl.setAttribute('d',d);dh.setAttribute('d',d);dl.removeAttribute('hidden');dh.removeAttribute('hidden');
+  SD.sel=it.n;
+  const shown=it.m.length?stateDistrictsFocusMember(st,ch,it.m):false;
+  const who=it.mem.map(m=>`${m[0]} (${sdWord(m[1])})`).join(', ');
+  const b=$('#sdBadge');
+  if(b){
+    $('.sd-sel',b).textContent=it.mem.length?`${it.name}: ${who}`:`${it.name}: no member in the data`;
+    $('.sd-live',b).textContent=it.mem.length?`${it.name}: ${who}.${shown?' Shown in the member list.':''}`:`${it.name}: no member in the data.`;
+    stateDistrictsPlace();
+  }
+}
+function sdKeyItems(){
+  const u=SD.used,out=[];
+  if(u.has('D'))out.push([['D'],'Democratic','Dem']);
+  if(u.has('R'))out.push([['R'],'Republican','Rep']);
+  if(u.has('I'))out.push([['I'],SD.ind,SD.ind==='Independent'?'Ind':SD.ind==='Nonpartisan'?'Nonpartisan':'Ind or nonpartisan']);
+  const pairs=Array.from(u).filter(t=>t.indexOf('_')>0);
+  if(pairs.length)out.push([pairs,'Split district: members of different parties (stripes)','Split']);
+  if(u.has('VAC'))out.push([['VAC'],'Vacant or not in the data (hatched)','Vacant']);
+  return out;
+}
+// The key column: the district key replaces the chamber-control key while the districts are on the map.
+function stateDistrictsLegend(v,base){
+  const w=SD.want;
+  if(!w||w.view!==v)return base;
+  if(SD.g&&SD.g.isConnected&&SD.status==='ready'){
+    const item=(tk,text)=>`<span class="lg"><span class="sws">${tk.map(x=>swatch(x)).join('')}</span>${text}</span>`;
+    return `<span class="lg sd-cap"><span><b>${SD_CAPTION}</b>Each district shows who held it, not who won it.</span></span>`
+      +sdKeyItems().map(x=>item(x[0],x[1])).join('')
+      +SD.notes.map(t=>`<span class="lg sd-note">${esc(t)}</span>`).join('');
+  }
+  if(SD.status==='failed')return base+`<span class="lg sd-note">${SD_FAIL_TEXT}</span>`;
+  if(SD.status==='stale')return base+`<span class="lg sd-note">${SD_STALE_TEXT}</span>`;
+  return base;
+}
+function sdBadge(){
+  let b=$('#sdBadge');
+  if(!b){
+    b=document.createElement('div');
+    b.id='sdBadge';b.className='sd-badge';b.hidden=true;
+    b.innerHTML='<b class="sd-cap"></b><div class="sd-row"><span class="sd-chips"></span><button type="button" class="sd-info" aria-expanded="false" aria-controls="sdNotes">Notes</button></div><div class="sd-notes" id="sdNotes" hidden></div><span class="sd-sel"></span><span class="sr sd-live" role="status" aria-live="polite"></span>';
+    // A tap on the button must not reach the page's click-away handler, which would close the panel.
+    $('.sd-info',b).addEventListener('click',e=>{
+      e.stopPropagation();
+      const n=$('.sd-notes',b),open=n.hidden;
+      n.hidden=!open;
+      e.currentTarget.setAttribute('aria-expanded',String(open));
+      stateDistrictsPlace();
+    });
+    well.appendChild(b);
+  }
+  return b;
+}
+function stateDistrictsUi(){
+  const ready=!!(SD.g&&SD.g.isConnected&&SD.status==='ready');
+  const key=SD.status+'|'+(ready?1:0)+'|'+(SD.want?SD.want.st+SD.want.ch+SD.want.view:'');
+  const note=SD.status==='failed'?SD_FAIL_TEXT:SD.status==='stale'?SD_STALE_TEXT:'';
+  if(key===SD.legKey)return;
+  SD.legKey=key;
+  const b=ready||note?sdBadge():$('#sdBadge');
+  if(b){
+    b.hidden=!(ready||note);
+    b.classList.toggle('is-note',!ready&&!!note);
+    $('.sd-cap',b).textContent=ready?SD_CAPTION:note;
+    $('.sd-chips',b).innerHTML=ready?sdKeyItems().map(x=>`<span>${x[0].map(t=>swatch(t)).join('')}${esc(x[2])}</span>`).join(''):'';
+    $('.sd-notes',b).innerHTML=ready?['Each district shows who held it, not who won it.'].concat(sdKeyItems().filter(x=>x[2]==='Split'||x[2]==='Vacant').map(x=>x[1]+'.'),SD.notes).map(t=>`<p>${esc(t)}</p>`).join(''):'';
+    $('.sd-notes',b).hidden=true;
+    $('.sd-info',b).setAttribute('aria-expanded','false');
+    $('.sd-sel',b).textContent=ready?SD_HINT:'';
+    $('.sd-live',b).textContent='';
+  }
+  renderLegend();
+  renderMapEmpty();
+  stateDistrictsPlace();
+}
+// The badge sits in the corner of the map where the state is not. On a phone the gap between the map and the sheet comes first.
+function stateDistrictsPlace(){
+  const b=$('#sdBadge');
+  if(!b||b.hidden||!SD.st||!vb)return;
+  const sheet=narrow()&&panel.classList.contains('open'),W=well.clientWidth,H=well.clientHeight,V=sheet?Math.min(H,visibleMapHeight()):H;
+  const bw=b.offsetWidth,bh=b.offsetHeight,m=8,k=scaleK(),g=GEO.states[SD.st].b;
+  const s=[(g[0]-vb[0])*k,(g[1]-vb[1])*k,(g[2]-vb[0])*k,(g[3]-vb[1])*k];
+  const cand=[[m,m],[W-bw-m,m],[m,V-bh-m],[W-bw-m,V-bh-m]];
+  const over=c=>{
+    // how many of a grid of points in the badge's rectangle fall on the state itself
+    let n=0;
+    for(let i=0;i<8;i++)for(let j=0;j<4;j++)if(inState(SD.st,vb[0]+(c[0]+bw*(i+.5)/8)/k,vb[1]+(c[1]+bh*(j+.5)/4)/k))n++;
+    return n;
+  };
+  if(sheet){
+    const gap=innerHeight-panel.offsetHeight-(($('#minibar').offsetHeight||0)+8+H);
+    if(gap>=bh+10)cand.unshift([m,H+6]);
+  }
+  let best=cand[0],bs=Infinity;
+  cand.forEach(c=>{
+    const ox=Math.min(c[0]+bw,s[2])-Math.max(c[0],s[0]),oy=Math.min(c[1]+bh,s[3])-Math.max(c[1],s[1]);
+    const n=ox>0&&oy>0?over(c):0;
+    if(n<bs){bs=n;best=c;}
+  });
+  b.style.left=best[0]+'px';b.style.top=best[1]+'px';
 }
 
 /* ---------- start ---------- */
