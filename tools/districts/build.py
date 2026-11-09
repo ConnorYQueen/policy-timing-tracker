@@ -130,6 +130,19 @@ def signed_area(a):
     return 0.5 * float(np.sum(x * np.roll(y, -1) - np.roll(x, -1) * y))
 
 
+def polygons_of(g):
+    """Every Polygon inside a geometry, at any depth. shapely.make_valid can return a GeometryCollection whose members
+    are themselves MultiPolygons (a self-touching ring split into pieces), so a one-level filter on 'Polygon' loses
+    them. Lines and points (where pieces only touch) are left out."""
+    if g is None or g.is_empty:
+        return []
+    if g.geom_type == 'Polygon':
+        return [g]
+    if g.geom_type in ('MultiPolygon', 'GeometryCollection'):
+        return [q for part in g.geoms for q in polygons_of(part)]
+    return []
+
+
 def feature_geom(rings):
     """Projected rings (outer rings and holes mixed) -> a shapely geometry (outer rings positive, holes negative)."""
     pts = [ring_pts(r) for r in rings]
@@ -150,8 +163,7 @@ def feature_geom(rings):
     for o, hs in parts:
         p = Polygon(o.exterior.coords, hs)
         if not p.is_valid:
-            p = shapely.make_valid(p)
-            polys.extend(g for g in getattr(p, 'geoms', [p]) if g.geom_type == 'Polygon' and g.area > 0)
+            polys.extend(g for g in polygons_of(shapely.make_valid(p)) if g.area > 0)
         else:
             polys.append(p)
     return MultiPolygon(polys) if polys else None

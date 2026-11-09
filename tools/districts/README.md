@@ -111,9 +111,12 @@ state shape first and the districts over it.
 
 Each chamber is simplified as one coverage with `shapely.coverage_simplify` (GEOS, Visvalingam), so a border shared
 by two districts is simplified once and stays shared: measured overlap between districts is 0.000%, and the part of
-the page's state shape that no district covers is under 0.15% of the state in 45 of 50 states (Alaska 0.4%, Hawaii
-1.5%, Ohio 0.75%, Wisconsin 0.4%, Louisiana Senate 1.0%: water the district files leave out, and coast/islet
-differences). Everything is chosen at the zoom
+the page's state shape that no district covers is under 0.15% of the state in 46 of 50 states (Alaska 0.4%, Hawaii
+1.5%, Wisconsin 0.4%, Louisiana Senate 1.0%: water the district files leave out, and coast/islet
+differences). A district ring that touches itself after projection is repaired with `shapely.make_valid`, which can
+return a collection that holds a multipolygon; `feature_geom` keeps every polygon in it (`polygons_of`). An earlier
+version dropped such a multipolygon, which cost Ohio's State Senate 2 and State House 89 their Erie County part
+(about 785 km2, 0.75% of Ohio). Everything is chosen at the zoom
 the page uses when a state fills its stage (about 650 x 500 px; `z`): tolerance 0.30 screen px, coordinates snapped
 to a grid of at most 0.15 screen px (1 to 4 decimals per state; Texas 0.01 map px, Rhode Island 0.001, since a fixed
 0.1 map px step would show as 2.5 px steps on Rhode Island). Islands and holes smaller than
