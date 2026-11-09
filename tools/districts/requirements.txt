@@ -1,0 +1,4 @@
+# Versions the files were built with. shapely >= 2.1 is required (coverage_simplify needs GEOS >= 3.12).
+shapely==2.2.0
+pyshp==3.1.7
+numpy==2.5.4
