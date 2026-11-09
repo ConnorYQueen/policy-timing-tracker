@@ -64,7 +64,7 @@ and our shapes match them.
 
 | State | State Senate | State House | Notes |
 |---|---|---|---|
-| Alabama | SAME<br>0 of 185,976<br>0.997 | SAME<br>0 of 185,976<br>0.989 | The 2025 court-ordered Senate map named in the task could not be checked in a source I could open; the Census data show no change. UNKNOWN beyond the Census. |
+| Alabama | SAME<br>0 of 185,976<br>0.997 | SAME<br>0 of 185,976<br>0.989 | Census data show no change. The court-ordered Senate map was checked later: Wikipedia's article on the 2026 Alabama Senate election, citing the Alabama Reflector of 2026-05-29, says a federal appeals court allowed Alabama to use its 2021 state Senate map, and the governor voided the primaries in the redrawn Montgomery districts 25 and 26 and called new ones for Aug. 11. So the 2021 map, the one in our file, is the map used on Nov. 3. SAME. |
 | Alaska | SAME<br>0 of 28,568<br>0.997 | SAME<br>0 of 28,568<br>0.986 |  |
 | Arizona | SAME<br>0 of 155,444<br>0.998 | SAME<br>0 of 155,444<br>0.998 |  |
 | Arkansas | SAME<br>0 of 136,422<br>0.997 | SAME<br>0 of 136,422<br>0.993 |  |
@@ -123,10 +123,13 @@ and our shapes match them.
   dockets, state commissions or news was opened.
 - **Why and when Mississippi's and Minnesota's maps changed** is not in any document I opened. For Michigan only the Census
   documents above (C25, C26) say it: a new Senate plan approved before the 2024 elections, first used in 2026.
-- **Alabama's State Senate.** The task names a 2025 court order. The Census files show no change for Alabama (0 of the Senate's
-  blocks moved; shapes identical in TIGER 2025 and 2026). If a court-ordered map is in effect for 2026 and the Census was
-  never given it, our file is out of date and I cannot tell. Same caution for any court or legislative action after the
-  states' submissions (the 2026 block files are dated 2026-08-24 to 2026-08-31).
+- **Alabama's State Senate: resolved.** The Census files show no change for Alabama (0 of the Senate's blocks moved; shapes
+  identical in TIGER 2025 and 2026). A later check against Wikipedia's article on the 2026 Alabama Senate election
+  (https://en.wikipedia.org/wiki/2026_Alabama_Senate_election, which cites the Alabama Reflector, 2026-05-29, "Federal appeals
+  court allows Alabama to use 2021 state Senate map") found that the court-ordered Montgomery redraw of districts 25 and 26
+  was set aside before the election and the 2021 map was used, with new special primaries on Aug. 11. That is the map in our
+  file. A court or legislative action after the states' submissions to the Census (the 2026 block files are dated
+  2026-08-24 to 2026-08-31) would still not show in the Census data.
 - **Louisiana** (no legislative election in 2026): whether a new legislative map was adopted for 2027 is not in the Census data
   and I did not find out.
 - **Texas, Florida, Utah, Missouri, Tennessee, Ohio, New York, Georgia, Wisconsin, North Dakota** (named in the task): the

@@ -1,12 +1,8 @@
 # State legislative districts: validation report
 
-Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (budget 9 MB), largest file 243 KB (budget 700 KB)
+Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.93 MB (budget 9 MB), largest file 243 KB (budget 700 KB)
 
-**Status: 98 OK, 1 partial, 0 failed** (of 99 chambers).
-
-## Not fully OK
-
-- **NH lower: partial**. 52 of 382 members have no district shape: #13 Belknap 8; #14 Belknap 8; #27 Carroll 7; #28 Carroll 8; #29 Carroll 8; #45 Cheshire 15; #46 Cheshire 15; #47 Cheshire 16; #48 Cheshire 17; #49 Cheshire 18; #50 Cheshire 18; #58 Coos 7; #82 Grafton 17; #83 Grafton 18; #181 Hillsborough 37; #182 Hillsborough 38; #183 Hillsborough 38; #184 Hillsborough 39; #185 Hillsborough 40; #186 Hillsborough 40; #187 Hillsborough 40; #188 Hillsborough 41; #189 Hillsborough 41; #197 Hillsborough 44; #198 Hillsborough 44; #199 Hillsborough 45; #238 Merrimack 25; #239 Merrimack 26; #240 Merrimack 27; #241 Merrimack 27; #242 Merrimack 28; #243 Merrimack 29; #244 Merrimack 30; #323 Rockingham 33; #324 Rockingham 34; #325 Rockingham 35; #326 Rockingham 36; #327 Rockingham 37; #328 Rockingham 38; #329 Rockingham 39 ...
+**Status: 99 OK, 0 partial, 0 failed** (of 99 chambers).
 
 ## Per state and chamber
 
@@ -56,14 +52,14 @@ Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (b
 | MD | lower | 141 | 71 | 141 | 141 | 0 | none | 0.9977 | 0.000% | 0.115% | 156 | OK |
 | ME | upper | 35 | 35 | 35 | 35 | 0 | none | 0.9978 | 0.000% | 0.131% | 110 | OK |
 | ME | lower | 151 | 151 | 153 | 151 | 0 | none | 0.9978 | 0.000% | 0.133% | 110 | OK |
-| MI | upper | 38 | 38 | 38 | 38 | 0 | none | 0.9987 | -0.000% | 0.065% | 88 | OK |
+| MI | upper | 38 | 38 | 38 | 38 | 0 | none | 0.9987 | 0.000% | 0.067% | 88 | OK |
 | MI | lower | 110 | 110 | 110 | 110 | 0 | none | 0.9987 | 0.000% | 0.066% | 88 | OK |
-| MN | upper | 67 | 67 | 67 | 67 | 0 | none | 0.9995 | -0.000% | 0.023% | 103 | OK |
-| MN | lower | 134 | 134 | 133 | 133 | 0 | 21A | 0.9995 | -0.000% | 0.023% | 103 | OK |
+| MN | upper | 67 | 67 | 67 | 67 | 0 | none | 0.9994 | 0.000% | 0.029% | 105 | OK |
+| MN | lower | 134 | 134 | 133 | 133 | 0 | 21A | 0.9994 | 0.000% | 0.029% | 105 | OK |
 | MO | upper | 34 | 34 | 33 | 33 | 0 | 10 | 0.9997 | -0.000% | 0.013% | 137 | OK |
 | MO | lower | 163 | 163 | 155 | 155 | 0 | 29, 95, 99, 110, 114, 149 (+2) | 0.9997 | -0.000% | 0.013% | 137 | OK |
-| MS | upper | 52 | 52 | 51 | 51 | 0 | 34 | 0.9994 | 0.000% | 0.032% | 160 | OK |
-| MS | lower | 122 | 122 | 120 | 120 | 0 | 70, 77 | 0.9994 | 0.000% | 0.031% | 160 | OK |
+| MS | upper | 52 | 52 | 51 | 51 | 0 | 34 | 0.9993 | 0.000% | 0.040% | 163 | OK |
+| MS | lower | 122 | 122 | 120 | 120 | 0 | 70, 77 | 0.9993 | 0.000% | 0.040% | 163 | OK |
 | MT | upper | 50 | 50 | 50 | 50 | 0 | none | 0.9999 | 0.000% | 0.007% | 147 | OK |
 | MT | lower | 100 | 100 | 100 | 100 | 0 | none | 0.9999 | 0.000% | 0.008% | 147 | OK |
 | NC | upper | 50 | 50 | 50 | 50 | 0 | none | 0.9991 | 0.000% | 0.043% | 162 | OK |
@@ -71,8 +67,8 @@ Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (b
 | ND | upper | 47 | 47 | 47 | 47 | 0 | none | 0.9996 | -0.000% | 0.023% | 65 | OK |
 | ND | lower | 94 | 48 | 94 | 94 | 0 | none | 0.9996 | -0.000% | 0.023% | 65 | OK |
 | NE | single chamber | 49 | 49 | 49 | 49 | 0 | none | 0.9998 | 0.000% | 0.008% | 23 | OK |
-| NH | upper | 24 | 24 | 24 | 24 | 0 | none | 0.9988 | 0.000% | 0.056% | 80 | OK |
-| NH | lower | 400 | 164 + 2 floterial | 382 | 330 | 52 | Cheshire 1, Coos 6, Grafton 9, Rockingham 22 | 0.9988 | 0.000% | 0.055% | 80 | partial |
+| NH | upper | 24 | 24 | 24 | 24 | 0 | none | 0.9988 | 0.000% | 0.056% | 101 | OK |
+| NH | lower | 400 | 164 + 39 floterial | 382 | 382 | 0 | Cheshire 1, Coos 6, Grafton 9, Rockingham 22 | 0.9988 | 0.000% | 0.055% | 101 | OK |
 | NJ | upper | 40 | 40 | 40 | 40 | 0 | none | 0.9997 | 0.000% | 0.016% | 86 | OK |
 | NJ | lower | 80 | 40 | 80 | 80 | 0 | none | 0.9997 | 0.000% | 0.016% | 86 | OK |
 | NM | upper | 42 | 42 | 42 | 42 | 0 | none | 0.9999 | 0.000% | 0.003% | 112 | OK |
@@ -118,4 +114,4 @@ Page: `2027-roster/index.html`  |  99 chambers in 50 states  |  total 5.91 MB (b
 
 - ME lower: Brian Reynolds (Houlton Band of Maliseet Indians): non-geographic seat (non-voting tribal representative), no district shape; not counted as unmatched
 - ME lower: Aaron Dana (Passamaquoddy Tribe): non-geographic seat (non-voting tribal representative), no district shape; not counted as unmatched
-- NH lower: 2 floterial district(s) drawn as the union of the base districts they overlay: Rockingham 31 = Rockingham 2, Rockingham 3 (2 members); Rockingham 32 = Rockingham 6, Rockingham 7, Rockingham 8 (1 members). 52 members hold 37 other district names that have no shape (floterial districts whose composition is not in tools/districts/nh_floterials.json): Belknap 8, Carroll 7, Carroll 8, Cheshire 15, Cheshire 16, Cheshire 17, Cheshire 18, Coos 7, Grafton 17, Grafton 18, Hillsborough 37, Hillsborough 38, Hillsborough 39, Hillsborough 40, Hillsborough 41, Hillsborough 44, Hillsborough 45, Merrimack 25, Merrimack 26, Merrimack 27, Merrimack 28, Merrimack 29, Merrimack 30, Rockingham 33, Rockingham 34, Rockingham 35, Rockingham 36, Rockingham 37, Rockingham 38, Rockingham 39, Rockingham 40, Strafford 18, Strafford 19, Strafford 20, Strafford 21, Sullivan 7, Sullivan 8
+- NH lower: 39 floterial district(s) drawn as the union of the base districts they overlay: Belknap 8 = Belknap 3, Belknap 4 (2 members); Carroll 7 = Carroll 5, Carroll 6 (1 members); Carroll 8 = Carroll 3, Carroll 4 (2 members); Cheshire 15 = Cheshire 1, Cheshire 2, Cheshire 3, Cheshire 4, Cheshire 5, Cheshire 6 (2 members); Cheshire 16 = Cheshire 7, Cheshire 8, Cheshire 9 (1 members); Cheshire 17 = Cheshire 10, Cheshire 11, Cheshire 12 (1 members); Cheshire 18 = Cheshire 13, Cheshire 14 (2 members); Coos 7 = Coos 4, Coos 5 (1 members); Grafton 17 = Grafton 13, Grafton 14, Grafton 15 (1 members); Grafton 18 = Grafton 9, Grafton 10, Grafton 11, Grafton 16 (1 members); Hillsborough 37 = Hillsborough 34, Hillsborough 43 (1 members); Hillsborough 38 = Hillsborough 13, Hillsborough 14 (2 members); Hillsborough 39 = Hillsborough 15, Hillsborough 16, Hillsborough 20 (1 members); Hillsborough 40 = Hillsborough 18, Hillsborough 19, Hillsborough 21, Hillsborough 22, Hillsborough 23 (3 members); Hillsborough 41 = Hillsborough 17, Hillsborough 24, Hillsborough 25, Hillsborough 26 (2 members); Hillsborough 44 = Hillsborough 28, Hillsborough 29 (2 members); Hillsborough 45 = Hillsborough 35, Hillsborough 36 (1 members); Merrimack 25 = Merrimack 2, Merrimack 3 (1 members); Merrimack 26 = Merrimack 1, Merrimack 4, Merrimack 5 (1 members); Merrimack 27 = Merrimack 10, Merrimack 11, Merrimack 14 (2 members); Merrimack 28 = Merrimack 15, Merrimack 16, Merrimack 17 (1 members); Merrimack 29 = Merrimack 18, Merrimack 23, Merrimack 24 (1 members); Merrimack 30 = Merrimack 19, Merrimack 20, Merrimack 21, Merrimack 22 (1 members); Rockingham 31 = Rockingham 2, Rockingham 3 (2 members); Rockingham 32 = Rockingham 6, Rockingham 7, Rockingham 8 (1 members); Rockingham 33 = Rockingham 10, Rockingham 11, Rockingham 12 (1 members); Rockingham 34 = Rockingham 14, Rockingham 15 (1 members); Rockingham 35 = Rockingham 16, Rockingham 17 (1 members); Rockingham 36 = Rockingham 19, Rockingham 20 (1 members); Rockingham 37 = Rockingham 21, Rockingham 22 (1 members); Rockingham 38 = Rockingham 23, Rockingham 24 (1 members); Rockingham 39 = Rockingham 26, Rockingham 27, Rockingham 28 (1 members); Rockingham 40 = Rockingham 29, Rockingham 30 (1 members); Strafford 18 = Strafford 3, Strafford 4 (1 members); Strafford 19 = Strafford 5, Strafford 6, Strafford 7, Strafford 8, Strafford 9 (3 members); Strafford 20 = Strafford 10, Strafford 11 (1 members); Strafford 21 = Strafford 13, Strafford 14, Strafford 15, Strafford 16, Strafford 17 (3 members); Sullivan 7 = Sullivan 2, Sullivan 3 (1 members); Sullivan 8 = Sullivan 4, Sullivan 5, Sullivan 6 (2 members). 0 members hold 0 other district names that have no shape (floterial districts whose composition is not in tools/districts/nh_floterials.json): 

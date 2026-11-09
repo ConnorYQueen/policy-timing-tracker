@@ -1,0 +1,1540 @@
+{
+ "about": "RSA 662:5 as reenacted by chapter 9, Laws of 2022 (HB 50), read by nh_statute.py. county -> district number -> towns or city wards and number of representatives.",
+ "source": {
+  "label": "HB 50 (2022), chaptered version that reenacted RSA 662:5, as shown by NH Liberty Alliance Bill Review",
+  "url": "https://bills.nhliberty.org/bills/2022/HB50",
+  "official": "https://gc.nh.gov/rsa/html/lxiii/662/662-5.htm"
+ },
+ "counties": {
+  "Belknap": {
+   "1": {
+    "towns": [
+     "Center Harbor",
+     "New Hampton"
+    ],
+    "seats": 1
+   },
+   "2": {
+    "towns": [
+     "Meredith"
+    ],
+    "seats": 2
+   },
+   "3": {
+    "towns": [
+     "Sanbornton",
+     "Tilton"
+    ],
+    "seats": 1
+   },
+   "4": {
+    "towns": [
+     "Belmont"
+    ],
+    "seats": 1
+   },
+   "5": {
+    "towns": [
+     "Laconia Ward 1",
+     "Laconia Ward 3",
+     "Laconia Ward 4",
+     "Laconia Ward 5",
+     "Laconia Ward 6"
+    ],
+    "seats": 4
+   },
+   "6": {
+    "towns": [
+     "Gilford",
+     "Gilmanton",
+     "Laconia Ward 2"
+    ],
+    "seats": 4
+   },
+   "7": {
+    "towns": [
+     "Alton",
+     "Barnstead"
+    ],
+    "seats": 3
+   },
+   "8": {
+    "towns": [
+     "Belmont",
+     "Sanbornton",
+     "Tilton"
+    ],
+    "seats": 2
+   }
+  },
+  "Carroll": {
+   "1": {
+    "towns": [
+     "Conway"
+    ],
+    "seats": 3
+   },
+   "2": {
+    "towns": [
+     "Albany",
+     "Bartlett",
+     "Chatham",
+     "Hale's Location",
+     "Hart's Location",
+     "Jackson",
+     "Sandwich"
+    ],
+    "seats": 2
+   },
+   "3": {
+    "towns": [
+     "Madison",
+     "Moultonborough",
+     "Tamworth"
+    ],
+    "seats": 2
+   },
+   "4": {
+    "towns": [
+     "Brookfield",
+     "Eaton",
+     "Effingham",
+     "Freedom",
+     "Wakefield"
+    ],
+    "seats": 2
+   },
+   "5": {
+    "towns": [
+     "Ossipee"
+    ],
+    "seats": 1
+   },
+   "6": {
+    "towns": [
+     "Tuftonboro",
+     "Wolfeboro"
+    ],
+    "seats": 2
+   },
+   "7": {
+    "towns": [
+     "Ossipee",
+     "Tuftonboro",
+     "Wolfeboro"
+    ],
+    "seats": 1
+   },
+   "8": {
+    "towns": [
+     "Brookfield",
+     "Eaton",
+     "Effingham",
+     "Freedom",
+     "Madison",
+     "Moultonborough",
+     "Tamworth",
+     "Wakefield"
+    ],
+    "seats": 2
+   }
+  },
+  "Cheshire": {
+   "1": {
+    "towns": [
+     "Keene Ward 1"
+    ],
+    "seats": 1
+   },
+   "2": {
+    "towns": [
+     "Keene Ward 3"
+    ],
+    "seats": 1
+   },
+   "3": {
+    "towns": [
+     "Keene Ward 5"
+    ],
+    "seats": 1
+   },
+   "4": {
+    "towns": [
+     "Keene Ward 4"
+    ],
+    "seats": 1
+   },
+   "5": {
+    "towns": [
+     "Surry",
+     "Walpole"
+    ],
+    "seats": 1
+   },
+   "6": {
+    "towns": [
+     "Chesterfield",
+     "Hinsdale",
+     "Westmoreland"
+    ],
+    "seats": 2
+   },
+   "7": {
+    "towns": [
+     "Keene Ward 2"
+    ],
+    "seats": 1
+   },
+   "8": {
+    "towns": [
+     "Harrisville",
+     "Marlborough",
+     "Nelson",
+     "Roxbury",
+     "Sullivan"
+    ],
+    "seats": 1
+   },
+   "9": {
+    "towns": [
+     "Alstead",
+     "Gilsum",
+     "Marlow",
+     "Stoddard"
+    ],
+    "seats": 1
+   },
+   "10": {
+    "towns": [
+     "Richmond",
+     "Swanzey"
+    ],
+    "seats": 2
+   },
+   "11": {
+    "towns": [
+     "Winchester"
+    ],
+    "seats": 1
+   },
+   "12": {
+    "towns": [
+     "Fitzwilliam",
+     "Troy"
+    ],
+    "seats": 1
+   },
+   "13": {
+    "towns": [
+     "Dublin",
+     "Jaffrey"
+    ],
+    "seats": 1
+   },
+   "14": {
+    "towns": [
+     "Rindge"
+    ],
+    "seats": 1
+   },
+   "15": {
+    "towns": [
+     "Chesterfield",
+     "Hinsdale",
+     "Keene Ward 1",
+     "Keene Ward 3",
+     "Keene Ward 4",
+     "Keene Ward 5",
+     "Surry",
+     "Walpole",
+     "Westmoreland"
+    ],
+    "seats": 2
+   },
+   "16": {
+    "towns": [
+     "Alstead",
+     "Gilsum",
+     "Harrisville",
+     "Keene Ward 2",
+     "Marlborough",
+     "Marlow",
+     "Nelson",
+     "Roxbury",
+     "Stoddard",
+     "Sullivan"
+    ],
+    "seats": 1
+   },
+   "17": {
+    "towns": [
+     "Fitzwilliam",
+     "Richmond",
+     "Swanzey",
+     "Troy",
+     "Winchester"
+    ],
+    "seats": 1
+   },
+   "18": {
+    "towns": [
+     "Dublin",
+     "Jaffrey",
+     "Rindge"
+    ],
+    "seats": 2
+   }
+  },
+  "Coos": {
+   "1": {
+    "towns": [
+     "Dalton",
+     "Lancaster",
+     "Northumberland",
+     "Stratford"
+    ],
+    "seats": 2
+   },
+   "2": {
+    "towns": [
+     "Atkinson & Gilmanton Academy Grant",
+     "Cambridge",
+     "Clarksville",
+     "Dix's Grant",
+     "Dixville",
+     "Dummer",
+     "Errol",
+     "Milan",
+     "Millsfield",
+     "Odell",
+     "Pittsburg",
+     "Second College Grant",
+     "Stark",
+     "Wentworth's Location"
+    ],
+    "seats": 1
+   },
+   "3": {
+    "towns": [
+     "Colebrook",
+     "Columbia",
+     "Erving's Location",
+     "Stewartstown"
+    ],
+    "seats": 1
+   },
+   "4": {
+    "towns": [
+     "Carroll",
+     "Jefferson",
+     "Kilkenny",
+     "Whitefield"
+    ],
+    "seats": 1
+   },
+   "5": {
+    "towns": [
+     "Berlin"
+    ],
+    "seats": 2
+   },
+   "6": {
+    "towns": [
+     "Bean's Grant",
+     "Bean's Purchase",
+     "Chandler's Purchase",
+     "Crawford's Purchase",
+     "Cutt's Grant",
+     "Gorham",
+     "Green's Grant",
+     "Hadley's Purchase",
+     "Low and Burbank's Grant",
+     "Martin's Location",
+     "Pinkham's Grant",
+     "Randolph",
+     "Sargent's Purchase",
+     "Shelburne",
+     "Success",
+     "Thompson and",
+     "Meserve's Purchase"
+    ],
+    "seats": 1
+   },
+   "7": {
+    "towns": [
+     "Berlin",
+     "Carroll",
+     "Jefferson",
+     "Kilkenny",
+     "Whitefield"
+    ],
+    "seats": 1
+   }
+  },
+  "Grafton": {
+   "1": {
+    "towns": [
+     "Bath",
+     "Lisbon",
+     "Littleton",
+     "Lyman",
+     "Monroe",
+     "Sugar Hill"
+    ],
+    "seats": 3
+   },
+   "2": {
+    "towns": [
+     "Bethlehem",
+     "Franconia"
+    ],
+    "seats": 1
+   },
+   "3": {
+    "towns": [
+     "Easton",
+     "Lincoln",
+     "Livermore",
+     "Woodstock"
+    ],
+    "seats": 1
+   },
+   "4": {
+    "towns": [
+     "Ellsworth",
+     "Thornton",
+     "Waterville Valley"
+    ],
+    "seats": 1
+   },
+   "5": {
+    "towns": [
+     "Benton",
+     "Haverhill",
+     "Landaff",
+     "Piermont",
+     "Warren"
+    ],
+    "seats": 2
+   },
+   "6": {
+    "towns": [
+     "Orford",
+     "Rumney",
+     "Wentworth"
+    ],
+    "seats": 1
+   },
+   "7": {
+    "towns": [
+     "Campton"
+    ],
+    "seats": 1
+   },
+   "8": {
+    "towns": [
+     "Ashland",
+     "Holderness",
+     "Plymouth"
+    ],
+    "seats": 3
+   },
+   "9": {
+    "towns": [
+     "Canaan",
+     "Dorchester",
+     "Orange"
+    ],
+    "seats": 1
+   },
+   "10": {
+    "towns": [
+     "Bridgewater",
+     "Bristol"
+    ],
+    "seats": 1
+   },
+   "11": {
+    "towns": [
+     "Alexandria",
+     "Grafton",
+     "Groton",
+     "Hebron"
+    ],
+    "seats": 1
+   },
+   "12": {
+    "towns": [
+     "Hanover",
+     "Lyme"
+    ],
+    "seats": 4
+   },
+   "13": {
+    "towns": [
+     "Lebanon Ward 1"
+    ],
+    "seats": 1
+   },
+   "14": {
+    "towns": [
+     "Lebanon Ward 2"
+    ],
+    "seats": 1
+   },
+   "15": {
+    "towns": [
+     "Lebanon Ward 3"
+    ],
+    "seats": 1
+   },
+   "16": {
+    "towns": [
+     "Enfield"
+    ],
+    "seats": 1
+   },
+   "17": {
+    "towns": [
+     "Lebanon Ward 1",
+     "Lebanon Ward 2",
+     "Lebanon Ward 3"
+    ],
+    "seats": 1
+   },
+   "18": {
+    "towns": [
+     "Alexandria",
+     "Bridgewater",
+     "Bristol",
+     "Canaan",
+     "Dorchester",
+     "Enfield",
+     "Grafton",
+     "Groton",
+     "Hebron",
+     "Orange"
+    ],
+    "seats": 1
+   }
+  },
+  "Hillsborough": {
+   "1": {
+    "towns": [
+     "Pelham"
+    ],
+    "seats": 4
+   },
+   "2": {
+    "towns": [
+     "Bedford"
+    ],
+    "seats": 7
+   },
+   "3": {
+    "towns": [
+     "Nashua Ward 4"
+    ],
+    "seats": 3
+   },
+   "4": {
+    "towns": [
+     "Nashua Ward 2"
+    ],
+    "seats": 3
+   },
+   "5": {
+    "towns": [
+     "Nashua Ward 1"
+    ],
+    "seats": 3
+   },
+   "6": {
+    "towns": [
+     "Nashua Ward 3"
+    ],
+    "seats": 3
+   },
+   "7": {
+    "towns": [
+     "Nashua Ward 7"
+    ],
+    "seats": 3
+   },
+   "8": {
+    "towns": [
+     "Nashua Ward 6"
+    ],
+    "seats": 3
+   },
+   "9": {
+    "towns": [
+     "Nashua Ward 5"
+    ],
+    "seats": 3
+   },
+   "10": {
+    "towns": [
+     "Nashua Ward 9"
+    ],
+    "seats": 3
+   },
+   "11": {
+    "towns": [
+     "Nashua Ward 8"
+    ],
+    "seats": 3
+   },
+   "12": {
+    "towns": [
+     "Merrimack"
+    ],
+    "seats": 8
+   },
+   "13": {
+    "towns": [
+     "Hudson"
+    ],
+    "seats": 6
+   },
+   "14": {
+    "towns": [
+     "Litchfield"
+    ],
+    "seats": 2
+   },
+   "15": {
+    "towns": [
+     "Manchester Ward 8"
+    ],
+    "seats": 2
+   },
+   "16": {
+    "towns": [
+     "Manchester Ward 6"
+    ],
+    "seats": 2
+   },
+   "17": {
+    "towns": [
+     "Manchester Ward 2"
+    ],
+    "seats": 2
+   },
+   "18": {
+    "towns": [
+     "Manchester Ward 12"
+    ],
+    "seats": 2
+   },
+   "19": {
+    "towns": [
+     "Manchester Ward 10"
+    ],
+    "seats": 2
+   },
+   "20": {
+    "towns": [
+     "Manchester Ward 9"
+    ],
+    "seats": 2
+   },
+   "21": {
+    "towns": [
+     "Manchester Ward 1"
+    ],
+    "seats": 2
+   },
+   "22": {
+    "towns": [
+     "Manchester Ward 11"
+    ],
+    "seats": 2
+   },
+   "23": {
+    "towns": [
+     "Manchester Ward 3"
+    ],
+    "seats": 2
+   },
+   "24": {
+    "towns": [
+     "Manchester Ward 4"
+    ],
+    "seats": 2
+   },
+   "25": {
+    "towns": [
+     "Manchester Ward 5"
+    ],
+    "seats": 2
+   },
+   "26": {
+    "towns": [
+     "Manchester Ward 7"
+    ],
+    "seats": 2
+   },
+   "27": {
+    "towns": [
+     "Deering",
+     "Francestown"
+    ],
+    "seats": 1
+   },
+   "28": {
+    "towns": [
+     "Weare"
+    ],
+    "seats": 2
+   },
+   "29": {
+    "towns": [
+     "Goffstown"
+    ],
+    "seats": 4
+   },
+   "30": {
+    "towns": [
+     "Antrim",
+     "Bennington",
+     "Hillsborough",
+     "Windsor"
+    ],
+    "seats": 3
+   },
+   "31": {
+    "towns": [
+     "Greenfield",
+     "Hancock"
+    ],
+    "seats": 1
+   },
+   "32": {
+    "towns": [
+     "New Ipswich",
+     "Temple",
+     "Wilton"
+    ],
+    "seats": 3
+   },
+   "33": {
+    "towns": [
+     "Peterborough",
+     "Sharon"
+    ],
+    "seats": 2
+   },
+   "34": {
+    "towns": [
+     "Amherst"
+    ],
+    "seats": 3
+   },
+   "35": {
+    "towns": [
+     "Hollis"
+    ],
+    "seats": 2
+   },
+   "36": {
+    "towns": [
+     "Brookline",
+     "Greenville",
+     "Mason"
+    ],
+    "seats": 2
+   },
+   "37": {
+    "towns": [
+     "Amherst",
+     "Milford"
+    ],
+    "seats": 1
+   },
+   "38": {
+    "towns": [
+     "Hudson",
+     "Litchfield"
+    ],
+    "seats": 2
+   },
+   "39": {
+    "towns": [
+     "Manchester Ward 6",
+     "Manchester Ward 8",
+     "Manchester Ward 9"
+    ],
+    "seats": 2
+   },
+   "40": {
+    "towns": [
+     "Manchester Ward 1",
+     "Manchester Ward 3",
+     "Manchester Ward 10",
+     "Manchester Ward 11",
+     "Manchester Ward 12"
+    ],
+    "seats": 4
+   },
+   "41": {
+    "towns": [
+     "Manchester Ward 2",
+     "Manchester Ward 4",
+     "Manchester Ward 5",
+     "Manchester Ward 7"
+    ],
+    "seats": 3
+   },
+   "42": {
+    "towns": [
+     "Lyndeborough",
+     "Mont Vernon",
+     "New Boston"
+    ],
+    "seats": 3
+   },
+   "43": {
+    "towns": [
+     "Milford"
+    ],
+    "seats": 4
+   },
+   "44": {
+    "towns": [
+     "Goffstown",
+     "Weare"
+    ],
+    "seats": 2
+   },
+   "45": {
+    "towns": [
+     "Brookline",
+     "Greenville",
+     "Hollis",
+     "Mason"
+    ],
+    "seats": 1
+   }
+  },
+  "Merrimack": {
+   "1": {
+    "towns": [
+     "Boscawen"
+    ],
+    "seats": 1
+   },
+   "2": {
+    "towns": [
+     "Northfield"
+    ],
+    "seats": 1
+   },
+   "3": {
+    "towns": [
+     "Franklin Ward 1",
+     "Franklin Ward 2",
+     "Franklin Ward 3"
+    ],
+    "seats": 2
+   },
+   "4": {
+    "towns": [
+     "Canterbury",
+     "Loudon"
+    ],
+    "seats": 2
+   },
+   "5": {
+    "towns": [
+     "Andover",
+     "Danbury",
+     "Hill",
+     "Salisbury",
+     "Webster"
+    ],
+    "seats": 2
+   },
+   "6": {
+    "towns": [
+     "Sutton",
+     "Wilmot"
+    ],
+    "seats": 1
+   },
+   "7": {
+    "towns": [
+     "New London",
+     "Newbury"
+    ],
+    "seats": 2
+   },
+   "8": {
+    "towns": [
+     "Bradford",
+     "Henniker",
+     "Warner"
+    ],
+    "seats": 3
+   },
+   "9": {
+    "towns": [
+     "Bow",
+     "Hopkinton"
+    ],
+    "seats": 4
+   },
+   "10": {
+    "towns": [
+     "Dunbarton",
+     "Hooksett"
+    ],
+    "seats": 4
+   },
+   "11": {
+    "towns": [
+     "Allenstown"
+    ],
+    "seats": 1
+   },
+   "12": {
+    "towns": [
+     "Pembroke"
+    ],
+    "seats": 2
+   },
+   "13": {
+    "towns": [
+     "Chichester",
+     "Pittsfield"
+    ],
+    "seats": 2
+   },
+   "14": {
+    "towns": [
+     "Epsom"
+    ],
+    "seats": 1
+   },
+   "15": {
+    "towns": [
+     "Concord Ward 1"
+    ],
+    "seats": 1
+   },
+   "16": {
+    "towns": [
+     "Concord Ward 2"
+    ],
+    "seats": 1
+   },
+   "17": {
+    "towns": [
+     "Concord Ward 3"
+    ],
+    "seats": 1
+   },
+   "18": {
+    "towns": [
+     "Concord Ward 4"
+    ],
+    "seats": 1
+   },
+   "19": {
+    "towns": [
+     "Concord Ward 5"
+    ],
+    "seats": 1
+   },
+   "20": {
+    "towns": [
+     "Concord Ward 6"
+    ],
+    "seats": 1
+   },
+   "21": {
+    "towns": [
+     "Concord Ward 7"
+    ],
+    "seats": 1
+   },
+   "22": {
+    "towns": [
+     "Concord Ward 8"
+    ],
+    "seats": 1
+   },
+   "23": {
+    "towns": [
+     "Concord Ward 9"
+    ],
+    "seats": 1
+   },
+   "24": {
+    "towns": [
+     "Concord Ward 10"
+    ],
+    "seats": 1
+   },
+   "25": {
+    "towns": [
+     "Franklin Ward 1",
+     "Franklin Ward 2",
+     "Franklin Ward 3",
+     "Northfield"
+    ],
+    "seats": 1
+   },
+   "26": {
+    "towns": [
+     "Andover",
+     "Boscawen",
+     "Canterbury",
+     "Danbury",
+     "Hill",
+     "Loudon",
+     "Salisbury",
+     "Webster"
+    ],
+    "seats": 1
+   },
+   "27": {
+    "towns": [
+     "Allenstown",
+     "Dunbarton",
+     "Epsom",
+     "Hooksett"
+    ],
+    "seats": 2
+   },
+   "28": {
+    "towns": [
+     "Concord Ward 1",
+     "Concord Ward 2",
+     "Concord Ward 3"
+    ],
+    "seats": 1
+   },
+   "29": {
+    "towns": [
+     "Concord Ward 4",
+     "Concord Ward 9",
+     "Concord Ward 10"
+    ],
+    "seats": 1
+   },
+   "30": {
+    "towns": [
+     "Concord Ward 5",
+     "Concord Ward 6",
+     "Concord Ward 7",
+     "Concord Ward 8"
+    ],
+    "seats": 1
+   }
+  },
+  "Rockingham": {
+   "1": {
+    "towns": [
+     "Northwood",
+     "Nottingham"
+    ],
+    "seats": 3
+   },
+   "2": {
+    "towns": [
+     "Auburn",
+     "Candia",
+     "Deerfield"
+    ],
+    "seats": 3
+   },
+   "3": {
+    "towns": [
+     "Chester"
+    ],
+    "seats": 1
+   },
+   "4": {
+    "towns": [
+     "Raymond"
+    ],
+    "seats": 3
+   },
+   "5": {
+    "towns": [
+     "Epping"
+    ],
+    "seats": 2
+   },
+   "6": {
+    "towns": [
+     "Brentwood"
+    ],
+    "seats": 1
+   },
+   "7": {
+    "towns": [
+     "Fremont"
+    ],
+    "seats": 1
+   },
+   "8": {
+    "towns": [
+     "Danville"
+    ],
+    "seats": 1
+   },
+   "9": {
+    "towns": [
+     "Sandown"
+    ],
+    "seats": 2
+   },
+   "10": {
+    "towns": [
+     "Newfields",
+     "Newmarket"
+    ],
+    "seats": 3
+   },
+   "11": {
+    "towns": [
+     "Exeter"
+    ],
+    "seats": 4
+   },
+   "12": {
+    "towns": [
+     "Stratham"
+    ],
+    "seats": 2
+   },
+   "13": {
+    "towns": [
+     "Derry"
+    ],
+    "seats": 10
+   },
+   "14": {
+    "towns": [
+     "E. Kingston",
+     "Kingston"
+    ],
+    "seats": 2
+   },
+   "15": {
+    "towns": [
+     "Hampstead"
+    ],
+    "seats": 2
+   },
+   "16": {
+    "towns": [
+     "Londonderry"
+    ],
+    "seats": 7
+   },
+   "17": {
+    "towns": [
+     "Windham"
+    ],
+    "seats": 4
+   },
+   "18": {
+    "towns": [
+     "Atkinson"
+    ],
+    "seats": 2
+   },
+   "19": {
+    "towns": [
+     "Hampton Falls",
+     "Kensington"
+    ],
+    "seats": 1
+   },
+   "20": {
+    "towns": [
+     "Newton",
+     "Plaistow",
+     "S. Hampton"
+    ],
+    "seats": 3
+   },
+   "21": {
+    "towns": [
+     "Newington",
+     "Portsmouth Ward 1"
+    ],
+    "seats": 1
+   },
+   "22": {
+    "towns": [
+     "New Castle",
+     "Portsmouth Ward 5"
+    ],
+    "seats": 1
+   },
+   "23": {
+    "towns": [
+     "N. Hampton"
+    ],
+    "seats": 1
+   },
+   "24": {
+    "towns": [
+     "Greenland",
+     "Rye"
+    ],
+    "seats": 2
+   },
+   "25": {
+    "towns": [
+     "Salem"
+    ],
+    "seats": 9
+   },
+   "26": {
+    "towns": [
+     "Portsmouth Ward 3"
+    ],
+    "seats": 1
+   },
+   "27": {
+    "towns": [
+     "Portsmouth Ward 4"
+    ],
+    "seats": 1
+   },
+   "28": {
+    "towns": [
+     "Portsmouth Ward 2"
+    ],
+    "seats": 1
+   },
+   "29": {
+    "towns": [
+     "Hampton"
+    ],
+    "seats": 4
+   },
+   "30": {
+    "towns": [
+     "Seabrook"
+    ],
+    "seats": 2
+   },
+   "31": {
+    "towns": [
+     "Auburn",
+     "Candia",
+     "Chester",
+     "Deerfield"
+    ],
+    "seats": 2
+   },
+   "32": {
+    "towns": [
+     "Brentwood",
+     "Danville",
+     "Fremont"
+    ],
+    "seats": 1
+   },
+   "33": {
+    "towns": [
+     "Exeter",
+     "Newfields",
+     "Newmarket",
+     "Stratham"
+    ],
+    "seats": 1
+   },
+   "34": {
+    "towns": [
+     "E. Kingston",
+     "Hampstead",
+     "Kingston"
+    ],
+    "seats": 1
+   },
+   "35": {
+    "towns": [
+     "Londonderry",
+     "Windham"
+    ],
+    "seats": 1
+   },
+   "36": {
+    "towns": [
+     "Hampton Falls",
+     "Kensington",
+     "Newton",
+     "Plaistow",
+     "S. Hampton"
+    ],
+    "seats": 1
+   },
+   "37": {
+    "towns": [
+     "New Castle",
+     "Newington",
+     "Portsmouth Ward 1",
+     "Portsmouth Ward 5"
+    ],
+    "seats": 1
+   },
+   "38": {
+    "towns": [
+     "Greenland",
+     "N. Hampton",
+     "Rye"
+    ],
+    "seats": 1
+   },
+   "39": {
+    "towns": [
+     "Portsmouth Ward 2",
+     "Portsmouth Ward 3",
+     "Portsmouth Ward 4"
+    ],
+    "seats": 1
+   },
+   "40": {
+    "towns": [
+     "Hampton",
+     "Seabrook"
+    ],
+    "seats": 1
+   }
+  },
+  "Strafford": {
+   "1": {
+    "towns": [
+     "Farmington"
+    ],
+    "seats": 2
+   },
+   "2": {
+    "towns": [
+     "Milton",
+     "Rochester Ward 5"
+    ],
+    "seats": 3
+   },
+   "3": {
+    "towns": [
+     "Middleton",
+     "New Durham"
+    ],
+    "seats": 1
+   },
+   "4": {
+    "towns": [
+     "Barrington",
+     "Strafford"
+    ],
+    "seats": 3
+   },
+   "5": {
+    "towns": [
+     "Rochester Ward 1"
+    ],
+    "seats": 1
+   },
+   "6": {
+    "towns": [
+     "Rochester Ward 2"
+    ],
+    "seats": 1
+   },
+   "7": {
+    "towns": [
+     "Rochester Ward 3"
+    ],
+    "seats": 1
+   },
+   "8": {
+    "towns": [
+     "Rochester Ward 4"
+    ],
+    "seats": 1
+   },
+   "9": {
+    "towns": [
+     "Rochester Ward 6"
+    ],
+    "seats": 1
+   },
+   "10": {
+    "towns": [
+     "Durham"
+    ],
+    "seats": 4
+   },
+   "11": {
+    "towns": [
+     "Dover Ward 4",
+     "Lee",
+     "Madbury"
+    ],
+    "seats": 3
+   },
+   "12": {
+    "towns": [
+     "Rollinsford",
+     "Somersworth Ward 1",
+     "Somersworth Ward 2",
+     "Somersworth Ward 3",
+     "Somersworth Ward 4",
+     "Somersworth Ward 5"
+    ],
+    "seats": 4
+   },
+   "13": {
+    "towns": [
+     "Dover Ward 6"
+    ],
+    "seats": 1
+   },
+   "14": {
+    "towns": [
+     "Dover Ward 1"
+    ],
+    "seats": 1
+   },
+   "15": {
+    "towns": [
+     "Dover Ward 2"
+    ],
+    "seats": 1
+   },
+   "16": {
+    "towns": [
+     "Dover Ward 3"
+    ],
+    "seats": 1
+   },
+   "17": {
+    "towns": [
+     "Dover Ward 5"
+    ],
+    "seats": 1
+   },
+   "18": {
+    "towns": [
+     "Barrington",
+     "Middleton",
+     "New Durham",
+     "Strafford"
+    ],
+    "seats": 1
+   },
+   "19": {
+    "towns": [
+     "Rochester Ward 1",
+     "Rochester Ward 2",
+     "Rochester Ward 3",
+     "Rochester Ward 4",
+     "Rochester Ward 6"
+    ],
+    "seats": 3
+   },
+   "20": {
+    "towns": [
+     "Dover Ward 4",
+     "Durham",
+     "Lee",
+     "Madbury"
+    ],
+    "seats": 1
+   },
+   "21": {
+    "towns": [
+     "Dover Ward 1",
+     "Dover Ward 2",
+     "Dover Ward 3",
+     "Dover Ward 5",
+     "Dover Ward 6"
+    ],
+    "seats": 3
+   }
+  },
+  "Sullivan": {
+   "1": {
+    "towns": [
+     "Grantham"
+    ],
+    "seats": 1
+   },
+   "2": {
+    "towns": [
+     "Cornish",
+     "Plainfield"
+    ],
+    "seats": 1
+   },
+   "3": {
+    "towns": [
+     "Charlestown",
+     "Newport",
+     "Unity"
+    ],
+    "seats": 3
+   },
+   "4": {
+    "towns": [
+     "Acworth",
+     "Goshen",
+     "Langdon",
+     "Lempster",
+     "Washington"
+    ],
+    "seats": 1
+   },
+   "5": {
+    "towns": [
+     "Springfield",
+     "Sunapee"
+    ],
+    "seats": 1
+   },
+   "6": {
+    "towns": [
+     "Claremont Ward 1",
+     "Claremont Ward 2",
+     "Claremont Ward 3",
+     "Croydon"
+    ],
+    "seats": 3
+   },
+   "7": {
+    "towns": [
+     "Charlestown",
+     "Cornish",
+     "Newport",
+     "Plainfield",
+     "Unity"
+    ],
+    "seats": 1
+   },
+   "8": {
+    "towns": [
+     "Acworth",
+     "Claremont Ward 1",
+     "Claremont Ward 2",
+     "Claremont Ward 3",
+     "Croydon",
+     "Goshen",
+     "Langdon",
+     "Lempster",
+     "Springfield",
+     "Sunapee",
+     "Washington"
+    ],
+    "seats": 2
+   }
+  }
+ }
+}

@@ -1,33 +1,568 @@
 {
-  "about": "Composition of New Hampshire House floterial districts, read by build.py. A floterial district overlays two or more whole base districts, so its shape is the union of those districts as drawn. Each entry lists the towns the statute names for the district; build.py finds the base districts that hold exactly those towns (Census county subdivisions) and stops if the towns are not a union of whole base districts, if a town is not found, or if `seats` is not the number of members the page lists for the district. Only districts whose composition was read in a source are listed here; the other floterial districts have no shape on the page. Add an entry only after reading the district's row in RSA 662:5 (or the Secretary of State's table) and rerun tools/districts/run.sh.",
-  "sources": {
-    "rsa": {
-      "label": "RSA 662:5, State Representative Districts (copy in the 2024 New Hampshire Revised Statutes)",
-      "url": "https://law.justia.com/codes/new-hampshire/title-lxiii/chapter-662/section-662-5/",
-      "official": "https://gc.nh.gov/rsa/html/lxiii/662/662-5.htm"
-    },
-    "sos": {
-      "label": "New Hampshire Secretary of State, Towns and Wards as Districted for Election Purposes, 2022",
-      "url": "https://www.sos.nh.gov/sites/g/files/ehbemt561/files/inline-documents/sonh/towns-and-wards-as-districted-for-election-purposes-2022-remediated.pdf"
-    },
-    "wiki": {
-      "label": "Wikipedia, Floterial district (example: Rockingham 32)",
-      "url": "https://en.wikipedia.org/wiki/Floterial_district"
-    }
-  },
-  "how-read": "The pages above could not be opened in full when this was built (the session's page fetcher could not resolve any host, and its search allowance ran out after three searches). The rows below were read from the excerpts the searches returned for those pages, and each was then checked against the Census map: the listed towns fall exactly inside whole base districts (Rockingham 31 is base districts 2 and 3; Rockingham 32 is base districts 6, 7 and 8), and the seat counts match the member list. A person with the statute open should confirm the rows before relying on them.",
-  "floterials": {
-    "Rockingham 31": {
-      "seats": 2,
-      "towns": ["Auburn", "Candia", "Chester", "Deerfield"],
-      "sources": ["rsa", "sos"],
-      "read": "RSA 662:5 row for Rockingham district 31, as excerpted by search: Auburn, Candia, Chester, Deerfield; 2 representatives. Secretary of State table, as excerpted: Auburn and Candia are in districts 2 and 31, Chester in 3 and 31. Both agree with the Census map (Auburn, Candia and Deerfield make up base district 2; Chester is base district 3)."
-    },
-    "Rockingham 32": {
-      "seats": 1,
-      "towns": ["Brentwood", "Danville", "Fremont"],
-      "sources": ["rsa", "sos", "wiki"],
-      "read": "RSA 662:5 row for Rockingham district 32, as excerpted by search: Brentwood, Danville, Fremont; 1 representative. Wikipedia's floterial example names the same three towns. The Secretary of State table excerpt put Brentwood in districts 6 and 32, which matches the Census map (Brentwood is base district 6); the same excerpt paired Fremont with district 6 as well, which does not (Fremont is base district 7, Danville 8), so that one detail of the excerpt is treated as garbled. Confirm against the table."
-    }
+ "about": "Composition of the New Hampshire House's floterial districts, read by build.py. A floterial district overlays two or more whole base districts, so its shape is the union of those districts as drawn. `towns` are the towns or city wards the statute lists for the district, `seats` its number of representatives, and `of` the Census base districts it covers, found by nh_floterials.py from nh_statute_662_5.json (RSA 662:5 as reenacted in 2022). build.py draws each from `of`; where every town also resolves on the Census town map it checks that the geometry gives the same base districts, and stops if not or if `seats` is not the number of members the page lists for the district. Rerun: nh_statute.py (on a saved copy of the bill page), nh_floterials.py, then run.sh.",
+ "sources": {
+  "statute": {
+   "label": "HB 50 (2022), chaptered version that reenacted RSA 662:5, as shown by NH Liberty Alliance Bill Review",
+   "url": "https://bills.nhliberty.org/bills/2022/HB50",
+   "official": "https://gc.nh.gov/rsa/html/lxiii/662/662-5.htm"
   }
+ },
+ "floterials": {
+  "Belknap 8": {
+   "seats": 2,
+   "towns": [
+    "Belmont",
+    "Sanbornton",
+    "Tilton"
+   ],
+   "of": [
+    "Belknap 3",
+    "Belknap 4"
+   ]
+  },
+  "Carroll 7": {
+   "seats": 1,
+   "towns": [
+    "Ossipee",
+    "Tuftonboro",
+    "Wolfeboro"
+   ],
+   "of": [
+    "Carroll 5",
+    "Carroll 6"
+   ]
+  },
+  "Carroll 8": {
+   "seats": 2,
+   "towns": [
+    "Brookfield",
+    "Eaton",
+    "Effingham",
+    "Freedom",
+    "Madison",
+    "Moultonborough",
+    "Tamworth",
+    "Wakefield"
+   ],
+   "of": [
+    "Carroll 3",
+    "Carroll 4"
+   ]
+  },
+  "Cheshire 15": {
+   "seats": 2,
+   "towns": [
+    "Chesterfield",
+    "Hinsdale",
+    "Keene Ward 1",
+    "Keene Ward 3",
+    "Keene Ward 4",
+    "Keene Ward 5",
+    "Surry",
+    "Walpole",
+    "Westmoreland"
+   ],
+   "of": [
+    "Cheshire 1",
+    "Cheshire 2",
+    "Cheshire 3",
+    "Cheshire 4",
+    "Cheshire 5",
+    "Cheshire 6"
+   ]
+  },
+  "Cheshire 16": {
+   "seats": 1,
+   "towns": [
+    "Alstead",
+    "Gilsum",
+    "Harrisville",
+    "Keene Ward 2",
+    "Marlborough",
+    "Marlow",
+    "Nelson",
+    "Roxbury",
+    "Stoddard",
+    "Sullivan"
+   ],
+   "of": [
+    "Cheshire 7",
+    "Cheshire 8",
+    "Cheshire 9"
+   ]
+  },
+  "Cheshire 17": {
+   "seats": 1,
+   "towns": [
+    "Fitzwilliam",
+    "Richmond",
+    "Swanzey",
+    "Troy",
+    "Winchester"
+   ],
+   "of": [
+    "Cheshire 10",
+    "Cheshire 11",
+    "Cheshire 12"
+   ]
+  },
+  "Cheshire 18": {
+   "seats": 2,
+   "towns": [
+    "Dublin",
+    "Jaffrey",
+    "Rindge"
+   ],
+   "of": [
+    "Cheshire 13",
+    "Cheshire 14"
+   ]
+  },
+  "Coos 7": {
+   "seats": 1,
+   "towns": [
+    "Berlin",
+    "Carroll",
+    "Jefferson",
+    "Kilkenny",
+    "Whitefield"
+   ],
+   "of": [
+    "Coos 4",
+    "Coos 5"
+   ]
+  },
+  "Grafton 17": {
+   "seats": 1,
+   "towns": [
+    "Lebanon Ward 1",
+    "Lebanon Ward 2",
+    "Lebanon Ward 3"
+   ],
+   "of": [
+    "Grafton 13",
+    "Grafton 14",
+    "Grafton 15"
+   ]
+  },
+  "Grafton 18": {
+   "seats": 1,
+   "towns": [
+    "Alexandria",
+    "Bridgewater",
+    "Bristol",
+    "Canaan",
+    "Dorchester",
+    "Enfield",
+    "Grafton",
+    "Groton",
+    "Hebron",
+    "Orange"
+   ],
+   "of": [
+    "Grafton 9",
+    "Grafton 10",
+    "Grafton 11",
+    "Grafton 16"
+   ]
+  },
+  "Hillsborough 37": {
+   "seats": 1,
+   "towns": [
+    "Amherst",
+    "Milford"
+   ],
+   "of": [
+    "Hillsborough 34",
+    "Hillsborough 43"
+   ]
+  },
+  "Hillsborough 38": {
+   "seats": 2,
+   "towns": [
+    "Hudson",
+    "Litchfield"
+   ],
+   "of": [
+    "Hillsborough 13",
+    "Hillsborough 14"
+   ]
+  },
+  "Hillsborough 39": {
+   "seats": 2,
+   "towns": [
+    "Manchester Ward 6",
+    "Manchester Ward 8",
+    "Manchester Ward 9"
+   ],
+   "of": [
+    "Hillsborough 15",
+    "Hillsborough 16",
+    "Hillsborough 20"
+   ]
+  },
+  "Hillsborough 40": {
+   "seats": 4,
+   "towns": [
+    "Manchester Ward 1",
+    "Manchester Ward 3",
+    "Manchester Ward 10",
+    "Manchester Ward 11",
+    "Manchester Ward 12"
+   ],
+   "of": [
+    "Hillsborough 18",
+    "Hillsborough 19",
+    "Hillsborough 21",
+    "Hillsborough 22",
+    "Hillsborough 23"
+   ]
+  },
+  "Hillsborough 41": {
+   "seats": 3,
+   "towns": [
+    "Manchester Ward 2",
+    "Manchester Ward 4",
+    "Manchester Ward 5",
+    "Manchester Ward 7"
+   ],
+   "of": [
+    "Hillsborough 17",
+    "Hillsborough 24",
+    "Hillsborough 25",
+    "Hillsborough 26"
+   ]
+  },
+  "Hillsborough 44": {
+   "seats": 2,
+   "towns": [
+    "Goffstown",
+    "Weare"
+   ],
+   "of": [
+    "Hillsborough 28",
+    "Hillsborough 29"
+   ]
+  },
+  "Hillsborough 45": {
+   "seats": 1,
+   "towns": [
+    "Brookline",
+    "Greenville",
+    "Hollis",
+    "Mason"
+   ],
+   "of": [
+    "Hillsborough 35",
+    "Hillsborough 36"
+   ]
+  },
+  "Merrimack 25": {
+   "seats": 1,
+   "towns": [
+    "Franklin Ward 1",
+    "Franklin Ward 2",
+    "Franklin Ward 3",
+    "Northfield"
+   ],
+   "of": [
+    "Merrimack 2",
+    "Merrimack 3"
+   ]
+  },
+  "Merrimack 26": {
+   "seats": 1,
+   "towns": [
+    "Andover",
+    "Boscawen",
+    "Canterbury",
+    "Danbury",
+    "Hill",
+    "Loudon",
+    "Salisbury",
+    "Webster"
+   ],
+   "of": [
+    "Merrimack 1",
+    "Merrimack 4",
+    "Merrimack 5"
+   ]
+  },
+  "Merrimack 27": {
+   "seats": 2,
+   "towns": [
+    "Allenstown",
+    "Dunbarton",
+    "Epsom",
+    "Hooksett"
+   ],
+   "of": [
+    "Merrimack 10",
+    "Merrimack 11",
+    "Merrimack 14"
+   ]
+  },
+  "Merrimack 28": {
+   "seats": 1,
+   "towns": [
+    "Concord Ward 1",
+    "Concord Ward 2",
+    "Concord Ward 3"
+   ],
+   "of": [
+    "Merrimack 15",
+    "Merrimack 16",
+    "Merrimack 17"
+   ]
+  },
+  "Merrimack 29": {
+   "seats": 1,
+   "towns": [
+    "Concord Ward 4",
+    "Concord Ward 9",
+    "Concord Ward 10"
+   ],
+   "of": [
+    "Merrimack 18",
+    "Merrimack 23",
+    "Merrimack 24"
+   ]
+  },
+  "Merrimack 30": {
+   "seats": 1,
+   "towns": [
+    "Concord Ward 5",
+    "Concord Ward 6",
+    "Concord Ward 7",
+    "Concord Ward 8"
+   ],
+   "of": [
+    "Merrimack 19",
+    "Merrimack 20",
+    "Merrimack 21",
+    "Merrimack 22"
+   ]
+  },
+  "Rockingham 31": {
+   "seats": 2,
+   "towns": [
+    "Auburn",
+    "Candia",
+    "Chester",
+    "Deerfield"
+   ],
+   "of": [
+    "Rockingham 2",
+    "Rockingham 3"
+   ]
+  },
+  "Rockingham 32": {
+   "seats": 1,
+   "towns": [
+    "Brentwood",
+    "Danville",
+    "Fremont"
+   ],
+   "of": [
+    "Rockingham 6",
+    "Rockingham 7",
+    "Rockingham 8"
+   ]
+  },
+  "Rockingham 33": {
+   "seats": 1,
+   "towns": [
+    "Exeter",
+    "Newfields",
+    "Newmarket",
+    "Stratham"
+   ],
+   "of": [
+    "Rockingham 10",
+    "Rockingham 11",
+    "Rockingham 12"
+   ]
+  },
+  "Rockingham 34": {
+   "seats": 1,
+   "towns": [
+    "E. Kingston",
+    "Hampstead",
+    "Kingston"
+   ],
+   "of": [
+    "Rockingham 14",
+    "Rockingham 15"
+   ]
+  },
+  "Rockingham 35": {
+   "seats": 1,
+   "towns": [
+    "Londonderry",
+    "Windham"
+   ],
+   "of": [
+    "Rockingham 16",
+    "Rockingham 17"
+   ]
+  },
+  "Rockingham 36": {
+   "seats": 1,
+   "towns": [
+    "Hampton Falls",
+    "Kensington",
+    "Newton",
+    "Plaistow",
+    "S. Hampton"
+   ],
+   "of": [
+    "Rockingham 19",
+    "Rockingham 20"
+   ]
+  },
+  "Rockingham 37": {
+   "seats": 1,
+   "towns": [
+    "New Castle",
+    "Newington",
+    "Portsmouth Ward 1",
+    "Portsmouth Ward 5"
+   ],
+   "of": [
+    "Rockingham 21",
+    "Rockingham 22"
+   ]
+  },
+  "Rockingham 38": {
+   "seats": 1,
+   "towns": [
+    "Greenland",
+    "N. Hampton",
+    "Rye"
+   ],
+   "of": [
+    "Rockingham 23",
+    "Rockingham 24"
+   ]
+  },
+  "Rockingham 39": {
+   "seats": 1,
+   "towns": [
+    "Portsmouth Ward 2",
+    "Portsmouth Ward 3",
+    "Portsmouth Ward 4"
+   ],
+   "of": [
+    "Rockingham 26",
+    "Rockingham 27",
+    "Rockingham 28"
+   ]
+  },
+  "Rockingham 40": {
+   "seats": 1,
+   "towns": [
+    "Hampton",
+    "Seabrook"
+   ],
+   "of": [
+    "Rockingham 29",
+    "Rockingham 30"
+   ]
+  },
+  "Strafford 18": {
+   "seats": 1,
+   "towns": [
+    "Barrington",
+    "Middleton",
+    "New Durham",
+    "Strafford"
+   ],
+   "of": [
+    "Strafford 3",
+    "Strafford 4"
+   ]
+  },
+  "Strafford 19": {
+   "seats": 3,
+   "towns": [
+    "Rochester Ward 1",
+    "Rochester Ward 2",
+    "Rochester Ward 3",
+    "Rochester Ward 4",
+    "Rochester Ward 6"
+   ],
+   "of": [
+    "Strafford 5",
+    "Strafford 6",
+    "Strafford 7",
+    "Strafford 8",
+    "Strafford 9"
+   ]
+  },
+  "Strafford 20": {
+   "seats": 1,
+   "towns": [
+    "Dover Ward 4",
+    "Durham",
+    "Lee",
+    "Madbury"
+   ],
+   "of": [
+    "Strafford 10",
+    "Strafford 11"
+   ]
+  },
+  "Strafford 21": {
+   "seats": 3,
+   "towns": [
+    "Dover Ward 1",
+    "Dover Ward 2",
+    "Dover Ward 3",
+    "Dover Ward 5",
+    "Dover Ward 6"
+   ],
+   "of": [
+    "Strafford 13",
+    "Strafford 14",
+    "Strafford 15",
+    "Strafford 16",
+    "Strafford 17"
+   ]
+  },
+  "Sullivan 7": {
+   "seats": 1,
+   "towns": [
+    "Charlestown",
+    "Cornish",
+    "Newport",
+    "Plainfield",
+    "Unity"
+   ],
+   "of": [
+    "Sullivan 2",
+    "Sullivan 3"
+   ]
+  },
+  "Sullivan 8": {
+   "seats": 2,
+   "towns": [
+    "Acworth",
+    "Claremont Ward 1",
+    "Claremont Ward 2",
+    "Claremont Ward 3",
+    "Croydon",
+    "Goshen",
+    "Langdon",
+    "Lempster",
+    "Springfield",
+    "Sunapee",
+    "Washington"
+   ],
+   "of": [
+    "Sullivan 4",
+    "Sullivan 5",
+    "Sullivan 6"
+   ]
+  }
+ }
 }

@@ -101,7 +101,7 @@ the overlay layer, shown only for the district the pointer or keyboard is on, th
 district whose member is chosen in the member list (the drawn chamber's list works as a list box: click, or arrow keys and
 Enter). The tooltip and aria-label of each base district a floterial covers name its members, and the key gets one line,
 "Floterial district: overlays several districts". An entry of `f` that is malformed is left out; a file with no `f` draws as
-before. Members with no shape (the other New Hampshire floterial districts) are named in the key and in the selection text.
+before. A member whose district has no shape is named in the key and in the selection text (Maine's tribal representatives; with every New Hampshire floterial drawn, no one else).
 
 Draw order: the district shapes do not cover water that the Census district files leave out (Sandusky Bay, Lake
 Pontchartrain, Green Bay, parts of the Great Lakes), while the page's state shapes include some of it, so draw the
@@ -156,19 +156,21 @@ Washington, New Jersey, West Virginia Senate, South Dakota, North Dakota, Vermon
 - **Colors in a redrawn chamber.** The page colors a district by the member who held that district number before the
   election; in a chamber with a new map those members were elected from the earlier lines (Michigan's State Senate), so
   the color is the earlier holder of the number, not of the new territory. The file's `note` says so.
-- **New Hampshire House is partial.** The Census publishes the 164 non-overlapping districts; the 39 floterial
+- **New Hampshire House floterial districts.** The Census publishes the 164 non-overlapping districts; the 39 floterial
   districts (e.g. 'Rockingham 31' to 'Rockingham 40', 'Hillsborough 37' to '45') overlay them and have no Census shape.
-  A floterial district is a union of whole base districts, and the statute (RSA 662:5) lists it by town. `nh_floterials.json`
-  holds, for each floterial district whose row was read in a source, the towns, the seat count and where it was read;
-  `build.py` finds the base districts that hold exactly those towns (Census towns, same vintage), refuses to build a
-  floterial whose towns are not a union of whole base districts, whose town is not found, or whose seat count differs from the
-  member list, and writes the union as `f`. **Only the entries in that file are drawn: at the last build 2 of the 39
-  (Rockingham 31 and 32, 3 members), so 52 of 382 members still have no district on the map.** The other 37 could not be
-  added because their rows of RSA 662:5 were not read: they must not be guessed. To add one, read its row in RSA 662:5 (or the
-  Secretary of State's 'Towns and Wards as Districted for Election Purposes'), add `"Belknap 8": {"seats": 2, "towns": [...],
-  "sources": [...], "read": "..."}`, rerun `run.sh`; the build log prints the base districts it found, and `validate.py`
-  re-checks the result. The two rows now in the file were read from search-result excerpts of the statute page and the
-  Secretary of State table, not from the full pages (see `how-read` in the file), and should be confirmed against the statute.
+  A floterial district is a union of whole base districts, and the statute (RSA 662:5, as reenacted by chapter 9, Laws of
+  2022, which sets the 2022 to 2026 plan) lists it by town or city ward. `nh_statute.py` reads the enacted text from a saved
+  copy of the bill page (https://bills.nhliberty.org/bills/2022/HB50, "HB 50 - FINAL VERSION"; official text
+  https://gc.nh.gov/rsa/html/lxiii/662/662-5.htm, which refuses automated requests) into `nh_statute_662_5.json` (203
+  districts, 400 seats, the House's size). `nh_floterials.py` turns that into `nh_floterials.json`: a floterial is a statute
+  district that is not a Census base district, and `of` is the base districts that list its towns and wards; it stops if a
+  town has no base district or a base district is only partly covered. `build.py` draws each as the union of those
+  districts' shapes (stored as `f`), refuses a floterial with more members than seats (fewer is a vacancy, as for any
+  district), and, where every town also resolves on the Census town map, checks that the geometry gives the same base
+  districts. All 39 are drawn, covering 55 members (58 seats; Hillsborough 39, 40 and 41 each have a vacancy); every one of
+  the 382 members now has a district. Checked against the page's data: the 164 Census base keys are exactly the statute's
+  base districts, every member's district is in the statute, and every statute district's seat count equals its members
+  listed except for the 18 vacancies (400 seats, 382 members).
 - **Generalized, shoreline-clipped boundaries** (1:500,000): good for a state-scale map, not for finding which
   district an address is in.
 - **Members are those in office before the Nov. 3, 2026 election** (the page's `legislator-data`); districts show who

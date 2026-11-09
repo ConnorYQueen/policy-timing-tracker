@@ -295,28 +295,38 @@ def build_floterials(spec, members, keep, towns, dec, min_area):
             raise SystemExit(f'NH floterial {key!r} is also a base district')
         if county not in COUNTY_FIPS or not idx:
             raise SystemExit(f'NH floterial {key!r}: unknown county or no member of the page holds it')
-        if f['seats'] != len(idx):
+        if len(idx) > f['seats']:   # fewer members than seats is a vacancy (the page lists members in office)
             raise SystemExit(f'NH floterial {key!r}: nh_floterials.json says {f["seats"]} seats, the page lists {len(idx)} members')
-        units = []
-        for name in f['towns']:
-            hit = [t for t in towns if t['name'] == name and t['county'] == COUNTY_FIPS[county]]
-            if len(hit) != 1:
-                raise SystemExit(f'NH floterial {key!r}: town {name!r} found {len(hit)} times in {county} County')
-            units.append(feature_geom(hit[0]['rings']))
-        area = shapely.union_all(units)
-        of, shares = [], {}
-        for k in sorted(keep, key=natkey):
-            g = keep[k][1]
-            share = g.intersection(area).area / g.area
-            if share >= FLO_INSIDE:
-                of.append(k)
-            elif share > FLO_SLIVER:
-                raise SystemExit(f'NH floterial {key!r}: base district {k!r} is only {share:.1%} inside the listed towns, '
-                                 f'so the towns are not a union of whole base districts')
-            shares[k] = share
-        covered = area.intersection(shapely.union_all([keep[k][1] for k in of])).area / area.area if of else 0
-        if not of or covered < FLO_INSIDE:
-            raise SystemExit(f'NH floterial {key!r}: the base districts found cover only {covered:.1%} of the listed towns')
+        # `of` (the base districts, read from the statute by nh_statute.py + nh_floterials.py) is the answer. When every
+        # town also resolves on the Census map, the geometry has to agree with it (a second, independent check); a floterial
+        # that lists city wards cannot be placed on a town map, so it rests on the statute alone.
+        stat_of = sorted(f['of'], key=natkey) if f.get('of') else None
+        if stat_of is not None and any(k not in base_keys for k in stat_of):
+            raise SystemExit(f'NH floterial {key!r}: `of` names a district that is not a base district: {stat_of}')
+        geo = None
+        hits = [[t for t in towns if t['name'] == name and t['county'] == COUNTY_FIPS[county]] for name in f['towns']]
+        if all(len(h) == 1 for h in hits):
+            units = [feature_geom(h[0]['rings']) for h in hits]
+            area = shapely.union_all(units)
+            of, shares = [], {}
+            for k in sorted(keep, key=natkey):
+                g = keep[k][1]
+                share = g.intersection(area).area / g.area
+                if share >= FLO_INSIDE:
+                    of.append(k)
+                elif share > FLO_SLIVER:
+                    raise SystemExit(f'NH floterial {key!r}: base district {k!r} is only {share:.1%} inside the listed towns, '
+                                     f'so the towns are not a union of whole base districts')
+                shares[k] = share
+            covered = area.intersection(shapely.union_all([keep[k][1] for k in of])).area / area.area if of else 0
+            if not of or covered < FLO_INSIDE:
+                raise SystemExit(f'NH floterial {key!r}: the base districts found cover only {covered:.1%} of the listed towns')
+            geo = (of, shares, covered)
+            if stat_of is not None and sorted(of, key=natkey) != stat_of:
+                raise SystemExit(f'NH floterial {key!r}: the statute says base districts {stat_of} but the Census towns give {of}')
+        elif stat_of is None:
+            raise SystemExit(f'NH floterial {key!r}: a town was not found exactly once in {county} County and no `of` is given')
+        of = stat_of if stat_of is not None else geo[0]
         polys = [Polygon(ext, holes) for k in of for ext, holes in keep[k][0]]
         union = shapely.union_all(polys)
         parts = finish_district(union, dec, min_area, union)
@@ -330,8 +340,9 @@ def build_floterials(spec, members, keep, towns, dec, min_area):
             'm': idx,
             'of': of,
         }
-        log.append(f'   floterial {key}: {len(idx)} seats, {len(f["towns"])} towns -> base districts {", ".join(of)} '
-                   f'(least inside {min(shares[k] for k in of):.1%}, towns covered {covered:.1%})')
+        check = (f'least inside {min(geo[1][k] for k in of):.1%}, towns covered {geo[2]:.1%}' if geo
+                 else 'statute only (city wards, no Census town shape)')
+        log.append(f'   floterial {key}: {len(idx)} seats, {len(f["towns"])} towns -> base districts {", ".join(of)} ({check})')
     return out, log
 
 
